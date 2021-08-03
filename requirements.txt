@@ -1,0 +1,7 @@
+ipdb
+python-socketio[client]
+redis
+aioredis
+flask
+flask-sqlalchemy
+flask-login
