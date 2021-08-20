@@ -1,7 +1,14 @@
+import os
+
+import redis
 from flask import Flask
 from flask_socketio import SocketIO
 
 sio = SocketIO()
+REDIS_URL = os.getenv("REDIS_URL", "redis")
+REDIS_PORT = os.getenv("REDIS_PORT", "6379")
+REDIS_QUEUE_NAME = os.getenv("REDIS_QUEUE_NAME", "navigator_frontend")
+redis_conn = redis.Redis(host=REDIS_URL, port=REDIS_PORT, db=4, charset="utf-8", decode_responses=True)
 
 
 @sio.on('app_created')
