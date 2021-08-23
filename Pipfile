@@ -10,7 +10,6 @@ aioredis = "*"
 flask = "*"
 flask-sqlalchemy = "*"
 flask-login = "*"
-flask-socketio = "*"
 
 [dev-packages]
 flake8 = "*"

@@ -1,18 +1,17 @@
 from flask import Blueprint
-from navigator_frontend.app import sio, redis_conn, REDIS_QUEUE_NAME
+
+from . import pubsub
 
 main_blueprint = Blueprint('main', __name__)
 
 
 @main_blueprint.route('/')
 def index():
-    sio.emit('navigate', {'fileurl': '/'})
-    redis_conn.publish(REDIS_QUEUE_NAME, "navigator frontend index")
+    pubsub.publish('navigate', "{'fileurl': '/'}")
     return 'Index'
 
 
 @main_blueprint.route('/profile')
 def profile():
-    sio.emit('navigate', {'fileurl': 'profile'})
-    redis_conn.publish(REDIS_QUEUE_NAME, "navigator frontend profile")
+    pubsub.publish('navigate', "{'fileurl': 'profile'}")
     return 'Profile'
