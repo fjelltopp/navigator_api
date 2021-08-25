@@ -26,5 +26,20 @@ def subscribe(func):
     return func
 
 
+def response(event_queue):
+    pubsub = redis_conn.pubsub()
+    pubsub.subscribe(event_queue)
+    print(f"Subscribed for response to: {event_queue}")
+    for message in pubsub.listen():
+        if message['data'] == 1:
+            continue
+        print(f"Received message {message}")
+        if message['data']:
+            yield 'data: %s\n\n' % message['data']
+            pubsub.unsubscribe()
+        else:
+            yield 'data: no data\n\n'
+
+
 def publish(event_type, event):
     redis_conn.publish(event_type, event)
