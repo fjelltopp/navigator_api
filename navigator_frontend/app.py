@@ -1,12 +1,5 @@
 from flask import Flask
 from flask_login import LoginManager
-from .pubsub import subscribe
-
-
-@subscribe
-def app_created(data):
-    print(f"app_created with {data}")
-
 
 login = LoginManager()
 
