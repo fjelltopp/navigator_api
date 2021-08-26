@@ -1,7 +1,7 @@
 import flask
 import os
 
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 import ckanapi
 from flask_login import login_user, UserMixin, logout_user
 
@@ -42,10 +42,10 @@ def login():
     else:
         user = User(id=ckan_user['id'], ckan_api_key=ckan_user['apikey'])
         login_user(user, remember=remember)
-    return "Logged in"
+    return jsonify({"message": "Login successful"})
 
 
 @auth_blueprint.route('/logout', methods=['POST'])
 def logout():
     logout_user()
-    return 'Logged out'
+    return jsonify({"message": "Logout successful"})
