@@ -26,8 +26,6 @@ class User(UserMixin):
 
 @login.user_loader
 def load_user(_id):
-    import pydevd_pycharm
-    pydevd_pycharm.settrace('172.17.0.1', port=9000, stdoutToServer=True, stderrToServer=True)
     user_id, apikey = _id.split("::")
     return User(id=user_id, ckan_api_key=apikey)
 
