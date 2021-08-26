@@ -10,10 +10,12 @@ aioredis = "*"
 flask = "*"
 flask-sqlalchemy = "*"
 flask-login = "*"
+ckanapi = "*"
 
 [dev-packages]
 flake8 = "*"
 ipdb = "==0.13.9"
+pydevd-pycharm = "*"
 
 [requires]
 python_version = "3.9"
