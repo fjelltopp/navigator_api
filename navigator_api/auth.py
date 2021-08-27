@@ -8,7 +8,7 @@ from flask_login import login_user, UserMixin, logout_user
 from .app import login
 
 auth_blueprint = Blueprint('auth', __name__)
-CKAN_URL = os.getenv("CKAN_URL", "http://dev-adr")
+CKAN_URL = os.getenv("CKAN_URL", "http://adr.local")
 ckan = ckanapi.RemoteCKAN(CKAN_URL)
 
 

@@ -7,5 +7,5 @@ from gevent import monkey
 monkey.patch_all()
 
 print("Creating app...")
-from navigator_frontend.app import create_app
+from navigator_api.app import create_app
 app = create_app()

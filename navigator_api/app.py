@@ -11,10 +11,10 @@ def create_app():
 
     login.init_app(app)
 
-    from navigator_frontend.auth import auth_blueprint
+    from navigator_api.auth import auth_blueprint
     app.register_blueprint(auth_blueprint)
 
-    from navigator_frontend.main import main_blueprint
+    from navigator_api.main import main_blueprint
     app.register_blueprint(main_blueprint)
 
     return app
