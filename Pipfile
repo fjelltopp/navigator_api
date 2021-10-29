@@ -11,6 +11,8 @@ flask = "*"
 flask-sqlalchemy = "*"
 flask-login = "*"
 ckanapi = "*"
+flask-cors = "*"
+webargs = "*"
 flask-session = "*"
 
 [dev-packages]
