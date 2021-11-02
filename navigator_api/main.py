@@ -109,7 +109,7 @@ def dataset_state_get(dataset_id):
     )
 
 
-@main_blueprint.route('/dataset/<int:dataset_id>/state', methods=['POST'])
+@main_blueprint.route('/dataset/<dataset_id>/state', methods=['POST'])
 @login_required
 @use_args(
     {
