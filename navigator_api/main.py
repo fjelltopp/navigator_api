@@ -15,7 +15,7 @@ def profile():
     return 'Profile'
 
 
-@main_blueprint.route('/user_details')
+@main_blueprint.route('/user')
 @login_required
 def user_details():
     user_details = session['ckan_user']
