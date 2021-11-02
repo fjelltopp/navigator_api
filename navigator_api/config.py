@@ -9,7 +9,8 @@ class Config(object):
     LOGGING_LEVEL = logging.DEBUG
     SECRET_KEY = 'tJNJzExKtefVbTj32sbg35'
     SESSION_TYPE = 'redis'
-    SESSION_REDIS = Redis(host='navigator.minikube', port=6379, db=1)
+    SESSION_KEY_PREFIX = 'session_api:'
+    SESSION_REDIS = Redis(host='navigator.minikube', port=6379, db=0)
 
 
 class Testing(Config):

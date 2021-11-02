@@ -1,7 +1,7 @@
 import flask
 import os
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
 import ckanapi
 from flask_login import login_user, UserMixin, logout_user
 
@@ -13,21 +13,13 @@ ckan = ckanapi.RemoteCKAN(CKAN_URL)
 
 
 class User(UserMixin):
-    def __init__(self, id, ckan_api_key):
+    def __init__(self, id):
         self.id = id
-        self.ckan_api_key = ckan_api_key
-
-    def get_id(self):
-        #TODO: This should be refactored to not store the
-        #ckan api in the session token. Consider storing
-        #service level (sysadmin) access ckan api in navigator
-        return f"{self.id}::{self.ckan_api_key}"
 
 
 @login.user_loader
-def load_user(_id):
-    user_id, apikey = _id.split("::")
-    return User(id=user_id, ckan_api_key=apikey)
+def load_user(user_id):
+    return User(id=user_id)
 
 
 @auth_blueprint.route('/login', methods=['POST'])
@@ -40,7 +32,8 @@ def login():
     if not ckan_user.get('email'):
         flask.abort(401, 'Bad credentials')
     else:
-        user = User(id=ckan_user['id'], ckan_api_key=ckan_user['apikey'])
+        user = User(id=ckan_user['id'])
+        session['ckan_user'] = ckan_user
         login_user(user, remember=remember)
     return jsonify({"message": "Login successful"})
 
@@ -48,4 +41,6 @@ def login():
 @auth_blueprint.route('/logout', methods=['POST'])
 def logout():
     logout_user()
+    if 'ckan_user' in session:
+        session.pop('ckan_user')
     return jsonify({"message": "Logout successful"})
