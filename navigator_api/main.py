@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, session
 from flask_login import login_required
 
 main_blueprint = Blueprint('main', __name__)
@@ -15,13 +15,14 @@ def profile():
     return 'Profile'
 
 
-@main_blueprint.route('/user_details')
+@main_blueprint.route('/user')
 @login_required
 def user_details():
+    user_details = session['ckan_user']
     return jsonify(
         {
-            "firstName": "Manoj",
-            "lastName": "Nathwani"
+            "fullname": user_details["fullname"],
+            "email": user_details["email"],
         }
     )
 
