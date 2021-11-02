@@ -86,12 +86,21 @@ def dataset_state_get(dataset_id):
         f'<p>{get_sentence(count=(1, 3))}</p>',
         f'<ol>{list_items}</ol>'
     ])
+    actionable_links = [
+        {
+            'label': possible_tasks[
+                randint(0, len(possible_tasks)-1)
+            ],
+            'link': 'http://example.com'
+        }
+        for x in range(randint(0, 3))
+    ]
     return jsonify(
         {
             'task_number': task_number,
             'milestone': possible_milestones[randint(0, len(possible_milestones)-1)],
             'display_html': html,
-            'lets_go_url': 'https://google.com',
+            'actionable_links': actionable_links,
             'skippable': bool(randint(0, 1)),
             'percentage': 5 if task_number < 5 else task_number,
             'grey': randint(0, 5),
