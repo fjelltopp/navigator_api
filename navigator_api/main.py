@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, session
 from flask_login import login_required
 from webargs import fields
 from webargs.flaskparser import use_args
-from lorem import get_paragraph, get_sentence
+from lorem import get_sentence
 
 main_blueprint = Blueprint('main', __name__)
 
@@ -55,7 +55,7 @@ def datasets():
     )
 
 
-@main_blueprint.route('/dataset_state/<dataset_id>', methods=['GET'])
+@main_blueprint.route('/dataset/<dataset_id>/state', methods=['GET'])
 @login_required
 def dataset_state_get(dataset_id):
     logging.info(f'dataset_id: {dataset_id}')
@@ -83,7 +83,7 @@ def dataset_state_get(dataset_id):
     ])
     html = ''.join([
         f'<h3>{task_name}</h3>',
-        f'<p>{get_paragraph(count=(3, 5))}</p>',
+        f'<p>{get_sentence(count=(1, 3))}</p>',
         f'<ol>{list_items}</ol>'
     ])
     return jsonify(
@@ -100,17 +100,17 @@ def dataset_state_get(dataset_id):
     )
 
 
-@main_blueprint.route('/dataset_state', methods=['POST'])
+@main_blueprint.route('/dataset/<int:dataset_id>/state', methods=['POST'])
 @login_required
 @use_args(
     {
-        'dataset_id': fields.Int(required=True),
         'action': fields.Str(required=True),
         'last_updated': fields.Int(required=True)
     }
 )
-def dataset_state_update(post_body):
+def dataset_state_update(post_body, dataset_id):
     logging.info(post_body)
+    assert post_body['action'] in ['next_step', 'skip_step']
     return jsonify({'success': True})
     # dataset_state = db.get_dataset_state(post_body['dataset_id'])
     # if dataset_state['last_updated'] != post_body['last_updated']:
