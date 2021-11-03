@@ -25,4 +25,7 @@ def create_app(config_object=None):
     from navigator_api.main import bp
     app.register_blueprint(bp)
 
+    from navigator_api.mock import bp as mock_bp
+    app.register_blueprint(mock_bp)
+
     return app
