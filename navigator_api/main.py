@@ -7,21 +7,21 @@ from webargs import fields
 from webargs.flaskparser import use_args
 from lorem import get_sentence
 
-main_blueprint = Blueprint('main', __name__)
+bp = Blueprint('main', __name__)
 
 
-@main_blueprint.route('/')
+@bp.route('/')
 def index():
-    return 'Index'
+    return {"app": "navigator_api"}
 
 
-@main_blueprint.route('/profile')
+@bp.route('/profile')
 @login_required
 def profile():
     return 'Profile'
 
 
-@main_blueprint.route('/user')
+@bp.route('/user')
 @login_required
 def user_details():
     user_details = session['ckan_user']
@@ -33,7 +33,7 @@ def user_details():
     )
 
 
-@main_blueprint.route('/datasets')
+@bp.route('/datasets')
 @login_required
 def datasets():
     return jsonify(
@@ -56,7 +56,7 @@ def datasets():
     )
 
 
-@main_blueprint.route('/dataset/<dataset_id>/state', methods=['GET'])
+@bp.route('/dataset/<dataset_id>/state', methods=['GET'])
 @login_required
 def dataset_state_get(dataset_id):
     logging.info(f'dataset_id: {dataset_id}')
@@ -110,7 +110,7 @@ def dataset_state_get(dataset_id):
     )
 
 
-@main_blueprint.route('/dataset/<dataset_id>/state', methods=['POST'])
+@bp.route('/dataset/<dataset_id>/state', methods=['POST'])
 @login_required
 @use_args(
     {
