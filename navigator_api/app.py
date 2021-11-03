@@ -15,6 +15,7 @@ def create_app(config_object=None):
     if not config_object:
         config_object = os.getenv('CONFIG_OBJECT', 'navigator_api.config.Config')
     app.config.from_object(config_object)
+    app.url_map.strict_slashes = False
 
     login.init_app(app)
     Session(app)
@@ -24,5 +25,8 @@ def create_app(config_object=None):
 
     from navigator_api.main import main_blueprint
     app.register_blueprint(main_blueprint)
+
+    from navigator_api.mock import blueprint as mock_blueprint
+    app.register_blueprint(mock_blueprint)
 
     return app

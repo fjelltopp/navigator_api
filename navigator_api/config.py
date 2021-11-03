@@ -10,7 +10,7 @@ class Config(object):
     SECRET_KEY = 'tJNJzExKtefVbTj32sbg35'
     SESSION_TYPE = 'redis'
     SESSION_KEY_PREFIX = 'session_api:'
-    SESSION_REDIS = Redis(host='navigator.minikube', port=6379, db=0)
+    SESSION_REDIS = Redis(host='redis-navigator', port=6379, db=0)
 
 
 class Testing(Config):
