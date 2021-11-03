@@ -1,15 +1,15 @@
 from flask import Blueprint, jsonify, session
 from flask_login import login_required
 
-bp = Blueprint('main', __name__)
+blueprint = Blueprint('main', __name__)
 
 
-@bp.route('/')
+@blueprint.route('/')
 def index():
     return {"app": "navigator_api"}
 
 
-@bp.route('/user')
+@blueprint.route('/user')
 @login_required
 def user_details():
     user_details = session['ckan_user']
@@ -21,30 +21,48 @@ def user_details():
     )
 
 
-@bp.route('/datasets')
+@blueprint.route('/datasets')
 @login_required
 def datasets():
     return jsonify(
         {
-            "datasets": [
-                {
-                    "id": "1",
-                    "name": "Uganda Inputs UNAIDS Estimates 2021"
-                },
-                {
-                    "id": "2",
-                    "name": "Malawi Inputs UNAIDS Estimates 2021"
-                },
-                {
-                    "id": "3",
-                    "name": "Antarctica Inputs UNAIDS Estimates 2021"
-                }
-            ]
+            "id": "dataset-1",
+            "organisation_name": "Uganda",
+            "name": "Uganda Inputs UNAIDS Estimates 2021"
+        },
+        {
+            "id": "dataset-2",
+            "organisation_name": "Malawi",
+            "name": "Malawi Inputs UNAIDS Estimates 2021"
+        },
+        {
+            "id": "dataset-3",
+            "organisation_name": "Antarctica",
+            "name": "Antarctica Inputs UNAIDS Estimates 2021"
+        },
+        {
+            "id": "dataset-4",
+            "organisation_name": "Sudan",
+            "name": "Sudan Inputs UNAIDS Estimates 2021"
         }
     )
 
 
-@bp.route('/workflows/<dataset_id>/state/')
+@blueprint.route('/workflows')
+def workflow_state(dataset_id):
+    return jsonify(
+        {
+            "id": "dataset-1",
+            "name": "Uganda Inputs UNAIDS Estimates 2021"
+        },
+        {
+            "id": "dataset-3",
+            "name": "Antarctica Inputs UNAIDS Estimates 2021"
+        }
+    )
+
+
+@blueprint.route('/workflows/<dataset_id>/state')
 def workflow_state(dataset_id):
     return jsonify({
         "id": "xxx-yyy-zzz",
@@ -92,12 +110,7 @@ def workflow_state(dataset_id):
     })
 
 
-@bp.route('/workflows/<dataset_id>/tasks/<task_id>/complete', methods=['POST'])
-def workflow_task_complete(dataset_id, task_id):
-    return jsonify({"message": "success"})
-
-
-@bp.route('/workflows/<dataset_id>/tasks/<task_id>')
+@blueprint.route('/workflows/<dataset_id>/tasks/<task_id>')
 def workflow_task_details(dataset_id, task_id):
     return jsonify({
         "id": f"{task_id}",
@@ -111,7 +124,11 @@ def workflow_task_details(dataset_id, task_id):
     })
 
 
-@bp.route('/workflows/<dataset_id>/tasks/<task_id>/skip', methods=['POST'])
-def workflow_task_skip(dataset_id, task_id):
+@blueprint.route('/workflows/<dataset_id>/tasks/<task_id>/complete', methods=['POST'])
+def workflow_task_complete(dataset_id, task_id):
     return jsonify({"message": "success"})
 
+
+@blueprint.route('/workflows/<dataset_id>/tasks/<task_id>/skip', methods=['POST'])
+def workflow_task_skip(dataset_id, task_id):
+    return jsonify({"message": "success"})

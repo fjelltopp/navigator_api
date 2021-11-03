@@ -7,12 +7,12 @@ from webargs import fields
 from webargs.flaskparser import use_args
 from lorem import get_sentence
 
-bp = Blueprint('mock', __name__)
+blueprint = Blueprint('mock', __name__)
 
 # This is a mock API which when navigator_ui swiches to main.py should be removed
 # remember to delete unused dependencies from Pipfile
 
-@bp.route('/dataset/<dataset_id>/state', methods=['GET'])
+@blueprint.route('/dataset/<dataset_id>/state', methods=['GET'])
 @login_required
 def dataset_state_get(dataset_id):
     possible_milestones = ['Shiny90', 'Naomi', 'Data Prep']
@@ -65,7 +65,7 @@ def dataset_state_get(dataset_id):
     )
 
 
-@bp.route('/dataset/<dataset_id>/state', methods=['POST'])
+@blueprint.route('/dataset/<dataset_id>/state', methods=['POST'])
 @login_required
 @use_args(
     {
