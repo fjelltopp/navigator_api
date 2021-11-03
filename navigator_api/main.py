@@ -8,7 +8,7 @@ main_blueprint = Blueprint('main', __name__)
 
 @main_blueprint.route('/')
 def index():
-    return {"app": "navigator_api"}
+    return jsonify({"app": "navigator_api"})
 
 
 @main_blueprint.route('/user')
