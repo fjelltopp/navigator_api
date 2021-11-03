@@ -1,15 +1,15 @@
 from flask import Blueprint, jsonify, session
 from flask_login import login_required
 
-blueprint = Blueprint('main', __name__)
+main_blueprint = Blueprint('main', __name__)
 
 
-@blueprint.route('/')
+@main_blueprint.route('/')
 def index():
     return {"app": "navigator_api"}
 
 
-@blueprint.route('/user')
+@main_blueprint.route('/user')
 @login_required
 def user_details():
     user_details = session['ckan_user']
@@ -21,7 +21,7 @@ def user_details():
     )
 
 
-@blueprint.route('/datasets')
+@main_blueprint.route('/datasets')
 @login_required
 def datasets():
     return jsonify(
@@ -48,21 +48,23 @@ def datasets():
     )
 
 
-@blueprint.route('/workflows')
-def workflow_state(dataset_id):
-    return jsonify(
-        {
-            "id": "dataset-1",
-            "name": "Uganda Inputs UNAIDS Estimates 2021"
-        },
-        {
-            "id": "dataset-3",
-            "name": "Antarctica Inputs UNAIDS Estimates 2021"
-        }
-    )
+@main_blueprint.route('/workflows')
+def workflow_list():
+    return jsonify({
+        "workflows": [
+            {
+                "id": "dataset-1",
+                "name": "Uganda Inputs UNAIDS Estimates 2021"
+            },
+            {
+                "id": "dataset-3",
+                "name": "Antarctica Inputs UNAIDS Estimates 2021"
+            }
+        ]
+    })
 
 
-@blueprint.route('/workflows/<dataset_id>/state')
+@main_blueprint.route('/workflows/<dataset_id>/state')
 def workflow_state(dataset_id):
     return jsonify({
         "id": "xxx-yyy-zzz",
@@ -110,7 +112,7 @@ def workflow_state(dataset_id):
     })
 
 
-@blueprint.route('/workflows/<dataset_id>/tasks/<task_id>')
+@main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>')
 def workflow_task_details(dataset_id, task_id):
     return jsonify({
         "id": f"{task_id}",
@@ -124,11 +126,11 @@ def workflow_task_details(dataset_id, task_id):
     })
 
 
-@blueprint.route('/workflows/<dataset_id>/tasks/<task_id>/complete', methods=['POST'])
+@main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>/complete', methods=['POST'])
 def workflow_task_complete(dataset_id, task_id):
     return jsonify({"message": "success"})
 
 
-@blueprint.route('/workflows/<dataset_id>/tasks/<task_id>/skip', methods=['POST'])
+@main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>/skip', methods=['POST'])
 def workflow_task_skip(dataset_id, task_id):
     return jsonify({"message": "success"})
