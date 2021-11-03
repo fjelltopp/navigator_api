@@ -1,6 +1,8 @@
 from flask import Blueprint, jsonify, session
 from flask_login import login_required
 
+import navigator_api.ckan as ckan
+
 main_blueprint = Blueprint('main', __name__)
 
 
@@ -24,28 +26,15 @@ def user_details():
 @main_blueprint.route('/datasets')
 @login_required
 def datasets():
-    return jsonify(
-        {
-            "id": "dataset-1",
-            "organisation_name": "Uganda",
-            "name": "Uganda Inputs UNAIDS Estimates 2021"
-        },
-        {
-            "id": "dataset-2",
-            "organisation_name": "Malawi",
-            "name": "Malawi Inputs UNAIDS Estimates 2021"
-        },
-        {
-            "id": "dataset-3",
-            "organisation_name": "Antarctica",
-            "name": "Antarctica Inputs UNAIDS Estimates 2021"
-        },
-        {
-            "id": "dataset-4",
-            "organisation_name": "Sudan",
-            "name": "Sudan Inputs UNAIDS Estimates 2021"
-        }
-    )
+    user_details = session['ckan_user']
+    ckan_cli = ckan.init_ckan(apikey=user_details['apikey'])
+    datasets = ckan.fetch_country_estimates_datasets(ckan_cli)
+    result = [{
+        "id": dataset['id'],
+        "organization_name": dataset['organization']['name'],
+        "name": dataset["title"]
+    } for dataset in datasets]
+    return jsonify(result)
 
 
 @main_blueprint.route('/workflows')
