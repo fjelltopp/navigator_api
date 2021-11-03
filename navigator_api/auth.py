@@ -1,15 +1,12 @@
 import flask
-import os
 
 from flask import Blueprint, request, jsonify, session
-import ckanapi
 from flask_login import login_user, UserMixin, logout_user
 
 from .app import login
+from .ckan import init_ckan
 
 auth_blueprint = Blueprint('auth', __name__)
-CKAN_URL = os.getenv("CKAN_URL", "http://adr.local")
-ckan = ckanapi.RemoteCKAN(CKAN_URL)
 
 
 class User(UserMixin):
@@ -31,6 +28,7 @@ def login():
     password = request.json.get('password')
     remember = bool(request.json.get('remember', False))
 
+    ckan = init_ckan()
     ckan_user = ckan.action.user_login(id=username, password=password)
     if not ckan_user.get('email'):
         flask.abort(401, 'Bad credentials')
