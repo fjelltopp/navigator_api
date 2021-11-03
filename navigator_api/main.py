@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, session
 from flask_login import login_required
+from .utils import mockup
 
 main_blueprint = Blueprint('main', __name__)
 
@@ -70,58 +71,40 @@ def workflow_state(dataset_id):
         "id": "xxx-yyy-zzz",
         "milestones": [
             {
-                "id": "xxx",
-                "title": "Naomi Data Prep",
+                "id": mockup.id(),
+                "title": mockup.milestone(),
                 "completed": True,
                 "progress": 100
             },
             {
-                "id": "yyy",
-                "title": "Shiny 90 Data Prep",
+                "id": mockup.id(),
+                "title": mockup.milestone(),
                 "completed": False,
                 "progress": 50
             },
             {
-                "id": "zzz",
-                "title": "Update Spectrum",
+                "id": mockup.id(),
+                "title": mockup.milestone(),
                 "completed": False,
                 "progress": 0
             }
         ],
         "tasks": [
-            "aaabbbbcc",
-            "dddeeefff",
-            "asdfasdfa",
-            "aaabbbbcc",
-            "dddeeefff",
-            "asdfasdfa",
-            "aaabbbbcc",
-            "dddeeefff",
-            "asdfasdfa"
+            mockup.id(),
+            mockup.id(),
+            mockup.id(),
+            mockup.id(),
+            mockup.id(),
+            mockup.id(),
         ],
-        "currentTask": {
-            "id": "asdfasdfa",
-            "skipped": False,
+        "current_task": {
+            "id": mockup.id(),
+            "milestone_id": mockup.id(),
+            "skippable": mockup.boolean(),
             "content": {
-                "title": "Populate ART template",
-                "display_html": "<p><strong>Lorem Ipsum</strong> is simply dummy <br /> text of the printing and typesetting industry.</p>",
-                "skippable": True,
-                "url": "https://dev.adr.fjelltopp.org/datasets"
-            }
-        }
-    })
-
-
-@main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>')
-def workflow_task_details(dataset_id, task_id):
-    return jsonify({
-        "id": f"{task_id}",
-        "skipped": True,
-        "content": {
-            "title": "Populate geo template",
-            "display_html": "<p>Lorem Ipsum has been the industry's standard dummy text ever since the <strong>1500s</strong></p>",
-            "skippable": True,
-            "url": "http://fjelltopp.org"
+                "display_html": mockup.html(),
+                "actionable_links": mockup.actionable_links()
+            },
         }
     })
 
