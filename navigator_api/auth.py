@@ -19,7 +19,10 @@ class User(UserMixin):
 
 @login.user_loader
 def load_user(user_id):
-    return User(id=user_id)
+    if 'ckan_user' in session:
+        if session['ckan_user']['id'] == user_id:
+            return User(id=user_id)
+    return None
 
 
 @auth_blueprint.route('/login', methods=['POST'])
