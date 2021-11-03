@@ -9,12 +9,6 @@ def index():
     return {"app": "navigator_api"}
 
 
-@bp.route('/profile')
-@login_required
-def profile():
-    return 'Profile'
-
-
 @bp.route('/user')
 @login_required
 def user_details():
