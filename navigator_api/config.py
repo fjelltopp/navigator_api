@@ -1,3 +1,5 @@
+import os
+
 import logging
 from redis import Redis
 
@@ -11,6 +13,7 @@ class Config(object):
     SESSION_TYPE = 'redis'
     SESSION_KEY_PREFIX = 'session_api:'
     SESSION_REDIS = Redis(host='redis-navigator', port=6379, db=0)
+    CKAN_URL = os.getenv("CKAN_URL", "http://adr.local")
 
 
 class Testing(Config):

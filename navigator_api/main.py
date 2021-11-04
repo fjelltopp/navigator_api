@@ -1,12 +1,14 @@
 from flask import Blueprint, jsonify, session
 from flask_login import login_required
 
+import navigator_api.ckan as ckan
+
 main_blueprint = Blueprint('main', __name__)
 
 
 @main_blueprint.route('/')
 def index():
-    return {"app": "navigator_api"}
+    return jsonify({"app": "navigator_api"})
 
 
 @main_blueprint.route('/user')
@@ -24,28 +26,14 @@ def user_details():
 @main_blueprint.route('/datasets')
 @login_required
 def datasets():
-    return jsonify(
-        {
-            "id": "dataset-1",
-            "organisation_name": "Uganda",
-            "name": "Uganda Inputs UNAIDS Estimates 2021"
-        },
-        {
-            "id": "dataset-2",
-            "organisation_name": "Malawi",
-            "name": "Malawi Inputs UNAIDS Estimates 2021"
-        },
-        {
-            "id": "dataset-3",
-            "organisation_name": "Antarctica",
-            "name": "Antarctica Inputs UNAIDS Estimates 2021"
-        },
-        {
-            "id": "dataset-4",
-            "organisation_name": "Sudan",
-            "name": "Sudan Inputs UNAIDS Estimates 2021"
-        }
-    )
+    ckan_cli = _get_ckan_client_from_session()
+    datasets = ckan.fetch_country_estimates_datasets(ckan_cli)
+    result = [{
+        "id": dataset['id'],
+        "organization_name": dataset['organization']['name'],
+        "name": dataset["title"]
+    } for dataset in datasets]
+    return jsonify(result)
 
 
 @main_blueprint.route('/workflows')
@@ -66,8 +54,10 @@ def workflow_list():
 
 @main_blueprint.route('/workflows/<dataset_id>/state')
 def workflow_state(dataset_id):
+    ckan_cli = _get_ckan_client_from_session()
+    dataset = ckan.fetch_dataset_details(ckan_cli, dataset_id)
     return jsonify({
-        "id": "xxx-yyy-zzz",
+        "id": f"{dataset_id}",
         "milestones": [
             {
                 "id": "xxx",
@@ -134,3 +124,9 @@ def workflow_task_complete(dataset_id, task_id):
 @main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>/skip', methods=['POST'])
 def workflow_task_skip(dataset_id, task_id):
     return jsonify({"message": "success"})
+
+
+def _get_ckan_client_from_session():
+    user_details = session['ckan_user']
+    ckan_cli = ckan.init_ckan(apikey=user_details['apikey'])
+    return ckan_cli
