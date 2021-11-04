@@ -26,14 +26,22 @@ def user_details():
 @main_blueprint.route('/datasets')
 @login_required
 def datasets():
+    ckan_user = session['ckan_user']
     ckan_cli = _get_ckan_client_from_session()
     datasets = ckan.fetch_country_estimates_datasets(ckan_cli)
-    result = [{
-        "id": dataset['id'],
-        "organizationName": dataset['organization']['name'],
-        "name": dataset["title"]
-    } for dataset in datasets]
-    return jsonify(result)
+    orgs = set(ckan.fetch_user_organization_ids(ckan_cli, capacity='editor'))
+    collab_datasets = set(ckan.fetch_user_collabolator_ids(ckan_cli, ckan_user_id=ckan_user['id'], capacity='editor'))
+    result = []
+    for dataset in datasets:
+        if dataset['organization']['id'] in orgs or dataset['id'] in collab_datasets:
+            result.append({
+                "id": dataset['id'],
+                "organization_name": dataset['organization']['name'],
+                "name": dataset["title"]
+            })
+    return jsonify({
+        "datasets": result
+    })
 
 
 @main_blueprint.route('/workflows')
