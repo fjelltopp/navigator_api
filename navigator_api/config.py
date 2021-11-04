@@ -13,6 +13,8 @@ class Config(object):
     SESSION_TYPE = 'redis'
     SESSION_KEY_PREFIX = 'session_api:'
     SESSION_REDIS = Redis(host='redis-navigator', port=6379, db=0)
+    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:1234567890@db/navigator_api'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
     CKAN_URL = os.getenv("CKAN_URL", "http://adr.local")
 
 
