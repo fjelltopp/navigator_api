@@ -97,7 +97,6 @@ def workflow_state(dataset_id):
                 "title": "Populate ART template",
                 "displayHtml": "<p><strong>Lorem Ipsum</strong> is simply dummy <br /> text of the printing and typesetting industry.</p>",
                 "skippable": True,
-                "actionUrl": "https://dev.adr.fjelltopp.org/datasets",
                 "helpUrls": [
                     {"label": "Naomi help docs", "url":"http://example"},
                     {"label": "Spectrum documentation", "url":"http://example"}
