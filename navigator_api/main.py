@@ -30,7 +30,7 @@ def datasets():
     datasets = ckan.fetch_country_estimates_datasets(ckan_cli)
     result = [{
         "id": dataset['id'],
-        "organization_name": dataset['organization']['name'],
+        "organizationName": dataset['organization']['name'],
         "name": dataset["title"]
     } for dataset in datasets]
     return jsonify(result)
@@ -78,7 +78,7 @@ def workflow_state(dataset_id):
                 "progress": 0
             }
         ],
-        "tasks": [
+        "taskBreadcrumps": [
             "aaabbbbcc",
             "dddeeefff",
             "asdfasdfa",
@@ -92,11 +92,16 @@ def workflow_state(dataset_id):
         "currentTask": {
             "id": "asdfasdfa",
             "skipped": False,
-            "content": {
+            "details": {
+                "milestoneId": "zzz",
                 "title": "Populate ART template",
-                "display_html": "<p><strong>Lorem Ipsum</strong> is simply dummy <br /> text of the printing and typesetting industry.</p>",
+                "displayHtml": "<p><strong>Lorem Ipsum</strong> is simply dummy <br /> text of the printing and typesetting industry.</p>",
                 "skippable": True,
-                "url": "https://dev.adr.fjelltopp.org/datasets"
+                "actionUrl": "https://dev.adr.fjelltopp.org/datasets",
+                "helpUrls": [
+                    {"label": "Naomi help docs", "url":"http://example"},
+                    {"label": "Spectrum documentation", "url":"http://example"}
+                ]
             }
         }
     })
@@ -106,12 +111,17 @@ def workflow_state(dataset_id):
 def workflow_task_details(dataset_id, task_id):
     return jsonify({
         "id": f"{task_id}",
-        "skipped": True,
-        "content": {
-            "title": "Populate geo template",
-            "display_html": "<p>Lorem Ipsum has been the industry's standard dummy text ever since the <strong>1500s</strong></p>",
+        "skipped": False,
+        "details": {
+            "milestoneId": "zzz",
+            "title": "Populate ART template",
+            "displayHtml": "<p><strong>Lorem Ipsum</strong> is simply dummy <br /> text of the printing and typesetting industry.</p>",
             "skippable": True,
-            "url": "http://fjelltopp.org"
+            "actionUrl": "https://dev.adr.fjelltopp.org/datasets",
+            "helpUrls": [
+                {"label": "Naomi help docs", "url": "http://example"},
+                {"label": "Spectrum documentation", "url": "http://example"}
+            ]
         }
     })
 
@@ -119,11 +129,13 @@ def workflow_task_details(dataset_id, task_id):
 @main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>/complete', methods=['POST'])
 def workflow_task_complete(dataset_id, task_id):
     return jsonify({"message": "success"})
+    # return latest workflow state
 
 
 @main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>/skip', methods=['POST'])
 def workflow_task_skip(dataset_id, task_id):
     return jsonify({"message": "success"})
+    # return latest workflow state
 
 
 def _get_ckan_client_from_session():
