@@ -4,7 +4,7 @@ from flask import Blueprint, request, jsonify, session
 from flask_login import login_user, UserMixin, logout_user
 
 from .app import login
-from .ckan import init_ckan
+import navigator_api.ckan_client as ckan_client
 
 auth_blueprint = Blueprint('auth', __name__)
 
@@ -28,8 +28,7 @@ def login():
     password = request.json.get('password')
     remember = bool(request.json.get('remember', False))
 
-    ckan = init_ckan()
-    ckan_user = ckan.action.user_login(id=username, password=password)
+    ckan_user = ckan_client.authenticate_user(password, username)
     if not ckan_user.get('email'):
         flask.abort(401, 'Bad credentials')
     else:

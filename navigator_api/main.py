@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, session
 from flask_login import login_required
 
-import navigator_api.ckan as ckan
+import navigator_api.ckan_client as ckan_client
 
 main_blueprint = Blueprint('main', __name__)
 
@@ -28,9 +28,9 @@ def user_details():
 def datasets():
     ckan_user = session['ckan_user']
     ckan_cli = _get_ckan_client_from_session()
-    datasets = ckan.fetch_country_estimates_datasets(ckan_cli)
-    orgs = set(ckan.fetch_user_organization_ids(ckan_cli, capacity='editor'))
-    collab_datasets = set(ckan.fetch_user_collabolator_ids(ckan_cli, ckan_user_id=ckan_user['id'], capacity='editor'))
+    datasets = ckan_client.fetch_country_estimates_datasets(ckan_cli)
+    orgs = set(ckan_client.fetch_user_organization_ids(ckan_cli, capacity='editor'))
+    collab_datasets = set(ckan_client.fetch_user_collabolator_ids(ckan_cli, ckan_user_id=ckan_user['id'], capacity='editor'))
     result = []
     for dataset in datasets:
         if dataset['organization']['id'] in orgs or dataset['id'] in collab_datasets:
@@ -63,7 +63,7 @@ def workflow_list():
 @main_blueprint.route('/workflows/<dataset_id>/state')
 def workflow_state(dataset_id):
     ckan_cli = _get_ckan_client_from_session()
-    dataset = ckan.fetch_dataset_details(ckan_cli, dataset_id)
+    dataset = ckan_client.fetch_dataset_details(ckan_cli, dataset_id)
     return jsonify({
         "id": f"{dataset_id}",
         "milestones": [
@@ -147,5 +147,5 @@ def workflow_task_skip(dataset_id, task_id):
 
 def _get_ckan_client_from_session():
     user_details = session['ckan_user']
-    ckan_cli = ckan.init_ckan(apikey=user_details['apikey'])
+    ckan_cli = ckan_client.init_ckan(apikey=user_details['apikey'])
     return ckan_cli

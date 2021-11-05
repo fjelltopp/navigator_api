@@ -10,6 +10,12 @@ def init_ckan(apikey=None):
     return ckanapi.RemoteCKAN(current_app.config['CKAN_URL'], apikey=apikey)
 
 
+def authenticate_user(password, username):
+    ckan = init_ckan()
+    ckan_user = ckan.action.user_login(id=username, password=password)
+    return ckan_user
+
+
 def fetch_country_estimates_datasets(ckan_cli, include_private=True):
     response = ckan_cli.action.package_search(
         q="type:country-estimates-22",
