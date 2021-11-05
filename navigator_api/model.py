@@ -14,6 +14,8 @@ class Workflow(db.Model):
 
     @property
     def skipped_tasks(self):
+        if len(self._skipped_tasks) == 0:
+            return []
         return [x for x in self._skipped_tasks.split(';')]
 
     @skipped_tasks.setter

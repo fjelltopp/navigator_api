@@ -22,6 +22,8 @@ psycopg2 = "*"
 flake8 = "*"
 ipdb = "==0.13.9"
 pydevd-pycharm = "*"
+factory-boy = "*"
+pytest-mock = "*"
 
 [requires]
 python_version = "3.9"
