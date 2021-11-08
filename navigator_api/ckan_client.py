@@ -37,7 +37,10 @@ def fetch_user_collabolator_ids(ckan_cli, ckan_user_id=None, capacity="editor"):
 
 
 def fetch_dataset_details(ckan_cli, dataset_id):
-    response = ckan_cli.action.package_show(id=dataset_id)
+    try:
+        response = ckan_cli.action.package_show(id=dataset_id)
+    except ckanapi.errors.NotFound:
+        return None
     return response
 
 

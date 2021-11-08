@@ -5,6 +5,10 @@ db = SQLAlchemy()
 migrate = Migrate()
 
 
+def get_workflow(dataset_id, user_id):
+    return Workflow.query.filter_by(dataset_id=dataset_id, user_id=user_id).first()
+
+
 class Workflow(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     decision_engine_id = db.Column(db.String, nullable=False)
