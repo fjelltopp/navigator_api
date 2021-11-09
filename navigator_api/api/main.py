@@ -1,10 +1,10 @@
 from flask import Blueprint, jsonify, session
 from flask_login import login_required, current_user
 
-import navigator_api.ckan_client as ckan_client
+import navigator_api.clients.ckan_client as ckan_client
 from navigator_api import model
-from navigator_api import error
-from navigator_api.engine_client import get_decision_engine
+from navigator_api.api import error
+from navigator_api.clients.engine_client import get_decision_engine
 
 main_blueprint = Blueprint('main', __name__)
 
