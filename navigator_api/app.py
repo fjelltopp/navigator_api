@@ -5,6 +5,8 @@ from flask_login import LoginManager
 from flask_session import Session
 from flask_cors import CORS
 
+from navigator_api.model import db, migrate
+
 login = LoginManager()
 
 
@@ -18,6 +20,8 @@ def create_app(config_object=None):
     app.url_map.strict_slashes = False
 
     login.init_app(app)
+    db.init_app(app)
+    migrate.init_app(app, db)
     Session(app)
 
     from navigator_api.auth import auth_blueprint

@@ -10,6 +10,12 @@ def init_ckan(apikey=None):
     return ckanapi.RemoteCKAN(current_app.config['CKAN_URL'], apikey=apikey)
 
 
+def authenticate_user(password, username):
+    ckan = init_ckan()
+    ckan_user = ckan.action.user_login(id=username, password=password)
+    return ckan_user
+
+
 def fetch_country_estimates_datasets(ckan_cli, include_private=True):
     response = ckan_cli.action.package_search(
         q="type:country-estimates-22",
@@ -31,7 +37,10 @@ def fetch_user_collabolator_ids(ckan_cli, ckan_user_id=None, capacity="editor"):
 
 
 def fetch_dataset_details(ckan_cli, dataset_id):
-    response = ckan_cli.action.package_show(id=dataset_id)
+    try:
+        response = ckan_cli.action.package_show(id=dataset_id)
+    except ckanapi.errors.NotFound:
+        return None
     return response
 
 
