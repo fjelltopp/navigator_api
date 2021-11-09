@@ -5,6 +5,7 @@ import navigator_api.clients.ckan_client as ckan_client
 from navigator_api import model
 from navigator_api.api import error
 from navigator_api.clients.engine_client import get_decision_engine
+from navigator_api.model import get_workflows
 
 main_blueprint = Blueprint('main', __name__)
 
@@ -52,28 +53,30 @@ def datasets():
 @main_blueprint.route('/workflows')
 @login_required
 def workflow_list():
+    workflows = get_workflows(user_id=current_user.id)
     return jsonify({
         "workflows": [
             {
-                "id": "dataset-1",
-                "name": "Uganda Inputs UNAIDS Estimates 2021"
-            },
-            {
-                "id": "dataset-3",
-                "name": "Antarctica Inputs UNAIDS Estimates 2021"
-            }
+                "id": workflow.dataset_id,
+                "name": workflow.name
+            } for workflow in workflows
         ]
     })
 
 
-def get_or_create_workflow(dataset_id, user_id):
+def get_or_create_workflow(dataset_id, user_id, name=None):
     workflow = model.get_workflow(dataset_id, user_id)
     if not workflow:
         try:
             decision_engine = get_decision_engine(dataset_id, user_id)
         except Exception:
             return None
-        workflow = model.Workflow(dataset_id=dataset_id, user_id=user_id, decision_engine_id=decision_engine['id'])
+        workflow = model.Workflow(
+            dataset_id=dataset_id,
+            name=name,
+            user_id=user_id,
+            decision_engine_id=decision_engine['id']
+        )
         model.db.session.add(workflow)
         model.db.session.commit()
 
@@ -87,7 +90,7 @@ def workflow_state(dataset_id):
     dataset = ckan_client.fetch_dataset_details(ckan_cli, dataset_id)
     if not dataset:
         return error.not_found(f"Could not find dataset with id: {dataset_id}")
-    workflow = get_or_create_workflow(dataset['id'], current_user.id)
+    workflow = get_or_create_workflow(dataset['id'], current_user.id, name=dataset['title'])
     if not workflow:
         return error.error_response(500, f"Couldn't get decision engine details for dataset {dataset_id}")
 
