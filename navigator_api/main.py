@@ -161,8 +161,7 @@ def workflow_task_details(dataset_id, task_id):
 @main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>/complete', methods=['POST'])
 @login_required
 def workflow_task_complete(dataset_id, task_id):
-    return jsonify({"message": "success"})
-    # return latest workflow state
+    return workflow_state(dataset_id)
 
 
 @main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>/skip', methods=['POST'])
@@ -173,8 +172,7 @@ def workflow_task_skip(dataset_id, task_id):
         workflow.skipped_tasks = workflow.skipped_tasks + [task_id]
         model.db.session.add(workflow)
         model.db.session.commit()
-    return jsonify({"message": "success"})
-    # return latest workflow state
+    return workflow_state(dataset_id)
 
 
 def _get_ckan_client_from_session():
