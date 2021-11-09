@@ -22,6 +22,7 @@ class Config(object):
 class Testing(Config):
     TESTING = True
     DEBUG = False
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'test.db')
     LOGGING_LEVEL = logging.WARNING
 
 

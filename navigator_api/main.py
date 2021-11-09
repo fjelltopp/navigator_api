@@ -168,6 +168,11 @@ def workflow_task_complete(dataset_id, task_id):
 @main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>/skip', methods=['POST'])
 @login_required
 def workflow_task_skip(dataset_id, task_id):
+    workflow = model.get_workflow(dataset_id, current_user.id)
+    if task_id not in workflow.skipped_tasks:
+        workflow.skipped_tasks = workflow.skipped_tasks + [task_id]
+        model.db.session.add(workflow)
+        model.db.session.commit()
     return jsonify({"message": "success"})
     # return latest workflow state
 
