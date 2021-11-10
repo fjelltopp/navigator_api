@@ -30,5 +30,3 @@ class Workflow(db.Model):
     @skipped_tasks.setter
     def skipped_tasks(self, tasks_list):
         self._skipped_tasks = ';'.join(tasks_list)
-
-
