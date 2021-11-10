@@ -18,6 +18,7 @@ class Config(object):
         'sqlite:///' + os.path.join(basedir, 'app.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     CKAN_URL = os.getenv("CKAN_URL", "http://adr.local")
+    ENGINE_URL = os.getenv("ENGINE_URL", "http://navigator-engine:5001")
 
 
 class Testing(Config):
