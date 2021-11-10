@@ -1,3 +1,5 @@
+from urllib.parse import urljoin
+
 import json
 
 import io
@@ -78,6 +80,10 @@ def push_workflow_state(ckan_cli, dataset_id, workflow_state):
             id=workflow_state_resource['id'],
             upload=io.StringIO(json.dumps(workflow_state))
         )
+
+
+def dataset_show_url(ckan_cli, dataset_id):
+    return urljoin(ckan_cli.address, f"api/3/action/package_show?id={dataset_id}")
 
 
 def _get_workflow_state(response):
