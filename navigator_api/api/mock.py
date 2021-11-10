@@ -12,6 +12,7 @@ blueprint = Blueprint('mock', __name__)
 # This is a mock API which when navigator_ui swiches to main.py should be removed
 # remember to delete unused dependencies from Pipfile
 
+
 @blueprint.route('/dataset/<dataset_id>/state', methods=['GET'])
 @login_required
 def dataset_state_get(dataset_id):

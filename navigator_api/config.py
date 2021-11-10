@@ -4,6 +4,7 @@ import logging
 from redis import Redis
 basedir = os.path.abspath(os.path.dirname(__file__))
 
+
 class Config(object):
     DEBUG = True
     TESTING = False
