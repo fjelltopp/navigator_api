@@ -42,7 +42,7 @@ def datasets():
         if dataset['organization']['id'] in orgs or dataset['id'] in collab_datasets:
             result.append({
                 "id": dataset['id'],
-                "organization_name": dataset['organization']['name'],
+                "organization_name": dataset['organization']['title'],
                 "name": dataset["title"]
             })
     return jsonify({
@@ -169,7 +169,44 @@ def workflow_task_details(dataset_id, task_id):
 @main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>/complete', methods=['POST'])
 @login_required
 def workflow_task_complete(dataset_id, task_id):
-    return workflow_state(dataset_id)
+    ckan_cli = _get_ckan_client_from_session()
+    try:
+        wf_state = ckan_client.fetch_workflow_state(ckan_cli, dataset_id)
+        completed_tasks = set(wf_state["completedTasks"])
+        completed_tasks.add(str(task_id))
+    except ckan_client.NotFound:
+        completed_tasks = {str(task_id)}
+    new_state = {
+        "completedTasks": list(completed_tasks)
+    }
+    try:
+        ckan_client.push_workflow_state(ckan_cli, dataset_id, new_state)
+    except ckan_client.NotFound:
+        return error.not_found(f"Dataset {dataset_id} not found")
+    return jsonify({"message": "success"})
+
+
+@main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>/complete', methods=['DELETE'])
+@login_required
+def workflow_task_undo_complete(dataset_id, task_id):
+    ckan_cli = _get_ckan_client_from_session()
+    try:
+        wf_state = ckan_client.fetch_workflow_state(ckan_cli, dataset_id)
+        completed_tasks = set(wf_state["completedTasks"])
+    except ckan_client.NotFound:
+        return error.not_found(f"Workflow completed tasks not found for dataset {dataset_id}")
+    try:
+        completed_tasks.remove(str(task_id))
+    except KeyError:
+        return error.not_found(f"Task {task_id} not found in completed tasks")
+    new_state = {
+        "completedTasks": list(completed_tasks)
+    }
+    try:
+        ckan_client.push_workflow_state(ckan_cli, dataset_id, new_state)
+    except ckan_client.NotFound:
+        return error.not_found(f"Dataset {dataset_id} not found")
+    return jsonify({"message": "success"})
 
 
 @main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>/skip', methods=['POST'])
@@ -182,7 +219,7 @@ def workflow_task_skip(dataset_id, task_id):
         workflow.skipped_tasks = workflow.skipped_tasks + [task_id]
         model.db.session.add(workflow)
         model.db.session.commit()
-    return workflow_state(dataset_id)
+    return jsonify({"message": "success"})
 
 
 def _get_ckan_client_from_session():
