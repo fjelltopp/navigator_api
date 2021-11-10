@@ -17,6 +17,7 @@ flask-session = "*"
 python-lorem = "*"
 flask-migrate = "*"
 psycopg2 = "*"
+requests = "*"
 
 [dev-packages]
 flake8 = "*"

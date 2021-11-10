@@ -1,14 +1,17 @@
+import logging
+
 from flask import Blueprint, jsonify, session
 from flask_login import login_required, current_user
 
 import navigator_api.clients.ckan_client as ckan_client
 from navigator_api import model
 from navigator_api.api import error
-from navigator_api.clients.engine_client import get_decision_engine
+from navigator_api.clients import engine_client
+from navigator_api.clients.engine_client import get_decision_engine, get_action
 from navigator_api.model import get_workflows
 
 main_blueprint = Blueprint('main', __name__)
-
+log = logging.getLogger(__name__)
 
 @main_blueprint.route('/')
 def index():
@@ -145,24 +148,32 @@ def workflow_state(dataset_id):
     })
 
 
+def is_task_skipped(dataset_id, task_id):
+    workflow = model.get_workflow(dataset_id, current_user.id)
+    return task_id in workflow.skipped_tasks
+
 @main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>')
 @login_required
 def workflow_task_details(dataset_id, task_id):
+    try:
+        task_details = engine_client.get_action(task_id)
+    except Exception:
+        log.exception(f"Failed to get task details {task_id}", exc_info=True)
+        return error.not_found(f"Failed to get task details {task_id}")
+    mock = {
+        "milestoneId": "zzz",
+        "helpUrls": [
+            {"label": "Naomi help docs", "url": "http://example"},
+            {"label": "Spectrum documentation", "url": "http://example"}
+        ]
+    }
+    for k, v in mock.items():
+        if k not in task_details:
+            task_details[k] = v
     return jsonify({
         "id": f"{task_id}",
-        "skipped": False,
-        "details": {
-            "milestoneId": "zzz",
-            "title": "Populate ART template",
-            "displayHtml": "<p><strong>Lorem Ipsum</strong> is simply dummy <br /> "
-                           "text of the printing and typesetting industry.</p>",
-            "skippable": True,
-            "actionUrl": "https://dev.adr.fjelltopp.org/datasets",
-            "helpUrls": [
-                {"label": "Naomi help docs", "url": "http://example"},
-                {"label": "Spectrum documentation", "url": "http://example"}
-            ]
-        }
+        "skipped": is_task_skipped(dataset_id, task_id),
+        "details": task_details
     })
 
 
