@@ -3,8 +3,8 @@ import flask
 from flask import Blueprint, request, jsonify, session
 from flask_login import login_user, UserMixin, logout_user
 
-from .app import login
-import navigator_api.ckan_client as ckan_client
+from navigator_api.app import login
+import navigator_api.clients.ckan_client as ckan_client
 
 auth_blueprint = Blueprint('auth', __name__)
 

@@ -24,13 +24,13 @@ def create_app(config_object=None):
     migrate.init_app(app, db)
     Session(app)
 
-    from navigator_api.auth import auth_blueprint
+    from navigator_api.api.auth import auth_blueprint
     app.register_blueprint(auth_blueprint)
 
-    from navigator_api.main import main_blueprint
+    from navigator_api.api.main import main_blueprint
     app.register_blueprint(main_blueprint)
 
-    from navigator_api.mock import blueprint as mock_blueprint
+    from navigator_api.api.mock import blueprint as mock_blueprint
     app.register_blueprint(mock_blueprint)
 
     return app

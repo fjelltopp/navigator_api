@@ -9,8 +9,13 @@ def get_workflow(dataset_id, user_id):
     return Workflow.query.filter_by(dataset_id=dataset_id, user_id=user_id).first()
 
 
+def get_workflows(user_id):
+    return Workflow.query.filter_by(user_id=user_id).all()
+
+
 class Workflow(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
     decision_engine_id = db.Column(db.String, nullable=False)
     dataset_id = db.Column(db.String, nullable=False)
     user_id = db.Column(db.String, nullable=False)
