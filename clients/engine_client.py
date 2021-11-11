@@ -4,8 +4,7 @@ import requests
 from urllib.parse import urljoin
 from flask import current_app
 
-from navigator_api.app import create_app
-from navigator_api.clients import ckan_client
+from clients import ckan_client
 
 
 def get_decision_engine(dataset_id, user_id):
@@ -35,6 +34,7 @@ def _engine_url():
 
 
 if __name__ == '__main__':
+    from app import create_app
     dataset_id = "3963fdf5-8915-448d-b8dd-9beca9c04a35"
     app = create_app()
     with app.app_context():

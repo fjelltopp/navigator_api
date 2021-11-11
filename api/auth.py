@@ -1,11 +1,10 @@
-import flask
-
+from api import error
 from flask import Blueprint, request, jsonify, session
-from flask_login import login_user, UserMixin, logout_user
+from flask_login import login_user, UserMixin, logout_user, LoginManager
 
-from navigator_api.app import login
-import navigator_api.clients.ckan_client as ckan_client
+import clients.ckan_client as ckan_client
 
+login_manager = LoginManager()
 auth_blueprint = Blueprint('auth', __name__)
 
 
@@ -14,7 +13,7 @@ class User(UserMixin):
         self.id = id
 
 
-@login.user_loader
+@login_manager.user_loader
 def load_user(user_id):
     if 'ckan_user' in session:
         if session['ckan_user']['id'] == user_id:
@@ -30,7 +29,7 @@ def login():
 
     ckan_user = ckan_client.authenticate_user(password, username)
     if not ckan_user.get('email'):
-        flask.abort(401, 'Bad credentials')
+        return error.error_response(401, 'Bad credentials')
     else:
         user = User(id=ckan_user['id'])
         session['ckan_user'] = ckan_user

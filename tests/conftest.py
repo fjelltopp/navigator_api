@@ -2,10 +2,10 @@ import uuid
 
 import pytest
 
-from navigator_api import model
-from navigator_api.api.auth import User
-from navigator_api.app import create_app
-from navigator_api.tests import factories
+import model
+from api.auth import User
+from app import create_app
+from tests import factories
 
 
 @pytest.fixture()
@@ -20,7 +20,7 @@ def user():
 
 @pytest.fixture(autouse=True, scope="session")
 def setup():
-    app = create_app('navigator_api.config.Testing')
+    app = create_app('config.Testing')
     with app.app_context():
         model.db.create_all()
         yield

@@ -13,7 +13,7 @@ jobs:
         run: pip install flake8 pycodestyle
       - name: Check syntax
         run: |
-          flake8 . --count --max-line-length=127 --show-source --statistics
+          flake8
 
   test:
     needs: lint
@@ -31,6 +31,6 @@ jobs:
           ls -la; pwd
           pipenv sync --dev
       - name: Run tests
-        run: cd navigator_api; pipenv run pytest
+        run: pipenv run pytest
 
 

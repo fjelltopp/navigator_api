@@ -1,5 +1,5 @@
 import factory
-from navigator_api import model as _model
+import model as _model
 
 
 class WorklowFactory(factory.alchemy.SQLAlchemyModelFactory):
