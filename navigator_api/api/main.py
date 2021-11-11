@@ -102,7 +102,7 @@ def workflow_state(dataset_id):
         "progress": engine_decision["progress"]["progress"],
         "milestones": engine_decision["progress"]["milestones"],
         "milestoneListFullyResolved": engine_decision["progress"]["milestoneListFullyResolved"],
-        "taskBreadcrumps": engine_decision["actions"],
+        "taskBreadcrumbs": engine_decision["actions"],
         "currentTask": {
             "id": engine_decision["decision"]["id"],
             "skipped": is_task_skipped(dataset_id, engine_decision["decision"]["id"]),
