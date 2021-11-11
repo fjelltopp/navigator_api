@@ -99,7 +99,9 @@ def workflow_state(dataset_id):
     engine_decision = engine_client.get_decision(ckan_cli, dataset_id, skip_actions=workflow.skipped_tasks)
     return jsonify({
         "id": f"{workflow.id}",
+        "progress": engine_decision["progress"]["progress"],
         "milestones": engine_decision["progress"]["milestones"],
+        "milestoneListFullyResolved": engine_decision["progress"]["milestoneListFullyResolved"],
         "taskBreadcrumps": engine_decision["actions"],
         "currentTask": {
             "id": engine_decision["decision"]["id"],
