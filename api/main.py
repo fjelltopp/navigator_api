@@ -4,6 +4,7 @@ from flask import Blueprint, jsonify, session
 from flask_login import login_required, current_user
 
 import clients.ckan_client as ckan_client
+import logic
 import model
 from api import error
 from clients import engine_client
@@ -95,19 +96,32 @@ def workflow_state(dataset_id):
     workflow = get_or_create_workflow(dataset['id'], current_user.id, name=dataset['title'])
     if not workflow:
         return error.error_response(500, f"Couldn't get decision engine details for dataset {dataset_id}")
+
     engine_decision = engine_client.get_decision(ckan_cli, dataset_id, skip_actions=workflow.skipped_tasks)
+    decision_task_id = str(engine_decision["decision"]["id"])
+    task_breadcrumbs = [str(action_id) for action_id in engine_decision["actions"]]
+
+    message = logic.workflow_state_message(workflow, task_breadcrumbs, decision_task_id)
+    _update_last_decision_task_id(decision_task_id, workflow)
     return jsonify({
         "id": f"{workflow.id}",
         "progress": engine_decision["progress"]["progress"],
+        "message": message,
         "milestones": engine_decision["progress"]["milestones"],
         "milestoneListFullyResolved": engine_decision["progress"]["milestoneListFullyResolved"],
-        "taskBreadcrumbs": engine_decision["actions"],
+        "taskBreadcrumbs": task_breadcrumbs,
         "currentTask": {
-            "id": engine_decision["decision"]["id"],
+            "id": decision_task_id,
             "skipped": is_task_skipped(dataset_id, engine_decision["decision"]["id"]),
             "details": _mock_task_details(engine_decision["decision"]["content"])
         }
     })
+
+
+def _update_last_decision_task_id(decision_task_id, workflow):
+    workflow.last_engine_decision_id = decision_task_id
+    model.db.session.add(workflow)
+    model.db.session.commit()
 
 
 def is_task_skipped(dataset_id, task_id):

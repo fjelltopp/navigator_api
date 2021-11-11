@@ -17,6 +17,7 @@ class Workflow(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     decision_engine_id = db.Column(db.String, nullable=False)
+    last_engine_decision_id = db.Column(db.String)
     dataset_id = db.Column(db.String, nullable=False)
     user_id = db.Column(db.String, nullable=False)
     _skipped_tasks = db.Column(db.String, default='')
