@@ -7,11 +7,11 @@ import navigator_api.clients.ckan_client as ckan_client
 from navigator_api import model
 from navigator_api.api import error
 from navigator_api.clients import engine_client
-from navigator_api.clients.engine_client import get_decision_engine, get_action
 from navigator_api.model import get_workflows
 
 main_blueprint = Blueprint('main', __name__)
 log = logging.getLogger(__name__)
+
 
 @main_blueprint.route('/')
 def index():
@@ -71,7 +71,7 @@ def get_or_create_workflow(dataset_id, user_id, name=None):
     workflow = model.get_workflow(dataset_id, user_id)
     if not workflow:
         try:
-            decision_engine = get_decision_engine(dataset_id, user_id)
+            decision_engine = engine_client.get_decision_engine(dataset_id, user_id)
         except Exception:
             return None
         workflow = model.Workflow(
@@ -112,6 +112,7 @@ def workflow_state(dataset_id):
 def is_task_skipped(dataset_id, task_id):
     workflow = model.get_workflow(dataset_id, current_user.id)
     return task_id in workflow.skipped_tasks
+
 
 @main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>')
 @login_required
