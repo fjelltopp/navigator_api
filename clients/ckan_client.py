@@ -1,14 +1,11 @@
 from urllib.parse import urljoin
-
 import json
-
 import io
 import os
 import ckanapi
 import requests
 from flask import current_app
 
-from navigator_api.app import create_app
 
 WORKFLOW_RESOURCE_TYPE = 'navigator-workflow-state'
 
@@ -101,6 +98,8 @@ class NotFound(Exception):
 
 
 if __name__ == '__main__':
+    from app import create_app
+
     app = create_app()
     with app.app_context():
         ckan_cli = init_ckan(apikey=os.getenv('CKAN_APIKEY'))

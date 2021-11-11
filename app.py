@@ -1,13 +1,11 @@
 import os
 
 from flask import Flask
-from flask_login import LoginManager
 from flask_session import Session
 from flask_cors import CORS
 
-from navigator_api.model import db, migrate
-
-login = LoginManager()
+from model import db, migrate
+from api.auth import login_manager
 
 
 def create_app(config_object=None):
@@ -15,22 +13,22 @@ def create_app(config_object=None):
     CORS(app)
 
     if not config_object:
-        config_object = os.getenv('CONFIG_OBJECT', 'navigator_api.config.Config')
+        config_object = os.getenv('CONFIG_OBJECT', 'config.Config')
     app.config.from_object(config_object)
     app.url_map.strict_slashes = False
 
-    login.init_app(app)
+    login_manager.init_app(app)
     db.init_app(app)
     migrate.init_app(app, db)
     Session(app)
 
-    from navigator_api.api.auth import auth_blueprint
+    from api.auth import auth_blueprint
     app.register_blueprint(auth_blueprint)
 
-    from navigator_api.api.main import main_blueprint
+    from api.main import main_blueprint
     app.register_blueprint(main_blueprint)
 
-    from navigator_api.api.mock import blueprint as mock_blueprint
-    app.register_blueprint(mock_blueprint)
-
     return app
+
+
+app = create_app()

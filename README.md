@@ -4,7 +4,6 @@
 
 ## DB init
 ```bash
-cd navigator_api/navigator_api
 pipenv run flask db upgrade
 ```
 

@@ -3,11 +3,10 @@ import logging
 from flask import Blueprint, jsonify, session
 from flask_login import login_required, current_user
 
-import navigator_api.clients.ckan_client as ckan_client
-from navigator_api import model
-from navigator_api.api import error
-from navigator_api.clients import engine_client
-from navigator_api.model import get_workflows
+import clients.ckan_client as ckan_client
+import model
+from api import error
+from clients import engine_client
 
 main_blueprint = Blueprint('main', __name__)
 log = logging.getLogger(__name__)
@@ -56,7 +55,7 @@ def datasets():
 @main_blueprint.route('/workflows')
 @login_required
 def workflow_list():
-    workflows = get_workflows(user_id=current_user.id)
+    workflows = model.get_workflows(user_id=current_user.id)
     return jsonify({
         "workflows": [
             {

@@ -1,5 +1,5 @@
-from navigator_api.model import get_workflows
-from navigator_api.tests import factories
+from model import get_workflows
+from tests import factories
 
 
 def test_new_workflow_has_empty_skipped_tasks(workflow):
