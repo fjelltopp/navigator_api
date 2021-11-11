@@ -1,13 +1,16 @@
+import logging
+
 from flask import Blueprint, jsonify, session
 from flask_login import login_required, current_user
 
 import navigator_api.clients.ckan_client as ckan_client
 from navigator_api import model
 from navigator_api.api import error
-from navigator_api.clients.engine_client import get_decision_engine
+from navigator_api.clients import engine_client
 from navigator_api.model import get_workflows
 
 main_blueprint = Blueprint('main', __name__)
+log = logging.getLogger(__name__)
 
 
 @main_blueprint.route('/')
@@ -68,7 +71,7 @@ def get_or_create_workflow(dataset_id, user_id, name=None):
     workflow = model.get_workflow(dataset_id, user_id)
     if not workflow:
         try:
-            decision_engine = get_decision_engine(dataset_id, user_id)
+            decision_engine = engine_client.get_decision_engine(dataset_id, user_id)
         except Exception:
             return None
         workflow = model.Workflow(
@@ -93,77 +96,53 @@ def workflow_state(dataset_id):
     workflow = get_or_create_workflow(dataset['id'], current_user.id, name=dataset['title'])
     if not workflow:
         return error.error_response(500, f"Couldn't get decision engine details for dataset {dataset_id}")
-
+    engine_decision = engine_client.get_decision(ckan_cli, dataset_id, skip_actions=workflow.skipped_tasks)
     return jsonify({
         "id": f"{workflow.id}",
-        "milestones": [
-            {
-                "id": "xxx",
-                "title": "Naomi Data Prep",
-                "completed": True,
-                "progress": 100
-            },
-            {
-                "id": "yyy",
-                "title": "Shiny 90 Data Prep",
-                "completed": False,
-                "progress": 50
-            },
-            {
-                "id": "zzz",
-                "title": "Update Spectrum",
-                "completed": False,
-                "progress": 0
-            }
-        ],
-        "taskBreadcrumps": [
-            "aaabbbbcc",
-            "dddeeefff",
-            "asdfasdfa",
-            "aaabbbbcc",
-            "dddeeefff",
-            "asdfasdfa",
-            "aaabbbbcc",
-            "dddeeefff",
-            "asdfasdfa"
-        ],
+        "progress": engine_decision["progress"]["progress"],
+        "milestones": engine_decision["progress"]["milestones"],
+        "milestoneListFullyResolved": engine_decision["progress"]["milestoneListFullyResolved"],
+        "taskBreadcrumbs": engine_decision["actions"],
         "currentTask": {
-            "id": "asdfasdfa",
-            "skipped": False,
-            "details": {
-                "milestoneId": "zzz",
-                "title": "Populate ART template",
-                "displayHtml": "<p><strong>Lorem Ipsum</strong> is simply dummy <br /> "
-                               "text of the printing and typesetting industry.</p>",
-                "skippable": True,
-                "helpUrls": [
-                    {"label": "Naomi help docs", "url": "http://example"},
-                    {"label": "Spectrum documentation", "url": "http://example"}
-                ]
-            }
+            "id": engine_decision["decision"]["id"],
+            "skipped": is_task_skipped(dataset_id, engine_decision["decision"]["id"]),
+            "details": _mock_task_details(engine_decision["decision"]["content"])
         }
     })
+
+
+def is_task_skipped(dataset_id, task_id):
+    workflow = model.get_workflow(dataset_id, current_user.id)
+    return task_id in workflow.skipped_tasks
 
 
 @main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>')
 @login_required
 def workflow_task_details(dataset_id, task_id):
+    try:
+        task_details = engine_client.get_action(task_id)
+    except Exception:
+        log.exception(f"Failed to get task details {task_id}", exc_info=True)
+        return error.not_found(f"Failed to get task details {task_id}")
     return jsonify({
         "id": f"{task_id}",
-        "skipped": False,
-        "details": {
-            "milestoneId": "zzz",
-            "title": "Populate ART template",
-            "displayHtml": "<p><strong>Lorem Ipsum</strong> is simply dummy <br /> "
-                           "text of the printing and typesetting industry.</p>",
-            "skippable": True,
-            "actionUrl": "https://dev.adr.fjelltopp.org/datasets",
-            "helpUrls": [
-                {"label": "Naomi help docs", "url": "http://example"},
-                {"label": "Spectrum documentation", "url": "http://example"}
-            ]
-        }
+        "skipped": is_task_skipped(dataset_id, task_id),
+        "details": _mock_task_details(task_details)
     })
+
+
+def _mock_task_details(task_details):
+    mock = {
+        "milestoneId": "6",
+        "helpUrls": [
+            {"label": "Naomi help docs", "url": "http://example"},
+            {"label": "Spectrum documentation", "url": "http://example"}
+        ]
+    }
+    for k, v in mock.items():
+        if k not in task_details:
+            task_details[k] = v
+    return task_details
 
 
 @main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>/complete', methods=['POST'])
