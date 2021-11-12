@@ -45,7 +45,7 @@ def datasets():
         if dataset['organization']['id'] in orgs or dataset['id'] in collab_datasets:
             result.append({
                 "id": dataset['id'],
-                "organization_name": dataset['organization']['title'],
+                "organizationName": dataset['organization']['title'],
                 "name": dataset["title"]
             })
     return jsonify({
