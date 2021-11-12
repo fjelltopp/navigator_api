@@ -121,6 +121,17 @@ def workflow_state(dataset_id):
     })
 
 
+@main_blueprint.route('/workflows/<dataset_id>/state', methods=['DELETE'])
+@login_required
+def workflow_delete(dataset_id):
+    workflow = model.get_workflow(dataset_id, current_user.id)
+    if not workflow:
+        return error.error_response(404, f"Workflow for dataset {dataset_id} not found.")
+    model.db.session.delete(workflow)
+    model.db.session.commit()
+    return jsonify({"message": "success"})
+
+
 def _update_last_decision_task_id(decision_task_id, workflow):
     workflow.last_engine_decision_id = decision_task_id
     model.db.session.add(workflow)
