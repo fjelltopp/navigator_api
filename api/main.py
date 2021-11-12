@@ -188,6 +188,7 @@ def workflow_task_complete(dataset_id, task_id):
         ckan_client.push_workflow_state(ckan_cli, dataset_id, new_state)
     except ckan_client.NotFound:
         return error.not_found(f"Dataset {dataset_id} not found")
+    workflow_task_skip_delete(dataset_id, task_id)
     return jsonify({"message": "success"})
 
 
@@ -222,6 +223,23 @@ def workflow_task_skip(dataset_id, task_id):
         return error.not_found(f"Workflow for dataset {dataset_id} not found.")
     if task_id not in workflow.skipped_tasks:
         workflow.skipped_tasks = workflow.skipped_tasks + [task_id]
+        model.db.session.add(workflow)
+        model.db.session.commit()
+    return jsonify({"message": "success"})
+
+
+@main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>/skip', methods=['DELETE'])
+@login_required
+def workflow_task_skip_delete(dataset_id, task_id):
+    workflow = model.get_workflow(dataset_id, current_user.id)
+    if not workflow:
+        return error.not_found(f"Workflow for dataset {dataset_id} not found.")
+    if task_id not in workflow.skipped_tasks:
+        return error.not_found(f"Task {task_id} not found in skipped tasks for workflow {dataset_id}")
+    else:
+        new_skipped_tasks = set(workflow.skipped_tasks)
+        new_skipped_tasks.remove(task_id)
+        workflow.skipped_tasks = new_skipped_tasks
         model.db.session.add(workflow)
         model.db.session.commit()
     return jsonify({"message": "success"})
