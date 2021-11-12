@@ -115,6 +115,7 @@ def workflow_state(dataset_id):
         "currentTask": {
             "id": decision_task_id,
             "skipped": is_task_skipped(dataset_id, engine_decision["decision"]["id"]),
+            "manual": True,
             "details": _mock_task_details(engine_decision["decision"]["content"])
         }
     })
@@ -149,14 +150,13 @@ def workflow_task_details(dataset_id, task_id):
 def _mock_task_details(task_details):
     mock = {
         "milestoneId": "6",
-        "helpUrls": [
+        "helpURLs": [
             {"label": "Naomi help docs", "url": "http://example"},
             {"label": "Spectrum documentation", "url": "http://example"}
         ]
     }
     for k, v in mock.items():
-        if k not in task_details:
-            task_details[k] = v
+        task_details[k] = v
     return task_details
 
 
