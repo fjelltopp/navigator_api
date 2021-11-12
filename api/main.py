@@ -100,6 +100,8 @@ def workflow_state(dataset_id):
     engine_decision = engine_client.get_decision(ckan_cli, dataset_id, skip_actions=workflow.skipped_tasks)
     decision_task_id = str(engine_decision["decision"]["id"])
     task_breadcrumbs = [str(action_id) for action_id in engine_decision["actions"]]
+    if len(task_breadcrumbs) and decision_task_id != task_breadcrumbs[-1]:
+        task_breadcrumbs.append(decision_task_id)
 
     message = logic.workflow_state_message(workflow, task_breadcrumbs, decision_task_id)
     _update_last_decision_task_id(decision_task_id, workflow)
