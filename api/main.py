@@ -45,7 +45,7 @@ def datasets():
         if dataset['organization']['id'] in orgs or dataset['id'] in collab_datasets:
             result.append({
                 "id": dataset['id'],
-                "organization_name": dataset['organization']['title'],
+                "organizationName": dataset['organization']['title'],
                 "name": dataset["title"]
             })
     return jsonify({
@@ -100,6 +100,8 @@ def workflow_state(dataset_id):
     engine_decision = engine_client.get_decision(ckan_cli, dataset_id, skip_actions=workflow.skipped_tasks)
     decision_task_id = str(engine_decision["decision"]["id"])
     task_breadcrumbs = [str(action_id) for action_id in engine_decision["actions"]]
+    if len(task_breadcrumbs) and decision_task_id != task_breadcrumbs[-1]:
+        task_breadcrumbs.append(decision_task_id)
 
     message = logic.workflow_state_message(workflow, task_breadcrumbs, decision_task_id)
     _update_last_decision_task_id(decision_task_id, workflow)
@@ -113,6 +115,7 @@ def workflow_state(dataset_id):
         "currentTask": {
             "id": decision_task_id,
             "skipped": is_task_skipped(dataset_id, engine_decision["decision"]["id"]),
+            "manual": True,
             "details": _mock_task_details(engine_decision["decision"]["content"])
         }
     })
@@ -147,14 +150,13 @@ def workflow_task_details(dataset_id, task_id):
 def _mock_task_details(task_details):
     mock = {
         "milestoneId": "6",
-        "helpUrls": [
+        "helpURLs": [
             {"label": "Naomi help docs", "url": "http://example"},
             {"label": "Spectrum documentation", "url": "http://example"}
         ]
     }
     for k, v in mock.items():
-        if k not in task_details:
-            task_details[k] = v
+        task_details[k] = v
     return task_details
 
 
