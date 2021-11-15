@@ -98,25 +98,30 @@ def workflow_state(dataset_id):
         return error.error_response(500, f"Couldn't get decision engine details for dataset {dataset_id}")
 
     engine_decision = engine_client.get_decision(ckan_cli, dataset_id, skip_actions=workflow.skipped_tasks)
-    decision_task_id = str(engine_decision["decision"]["id"])
+    skipped_task_to_remove = engine_decision.get("removeSkipActions")
+    if skipped_task_to_remove:
+        logic.remove_tasks_from_skipped_list(workflow, skipped_task_to_remove)
     task_breadcrumbs = [str(action_id) for action_id in engine_decision["actions"]]
-    if len(task_breadcrumbs) and decision_task_id != task_breadcrumbs[-1]:
-        task_breadcrumbs.append(decision_task_id)
+    task = engine_decision["decision"]
+    decision_task_id = str(task["id"])
+    task_details = task["content"]
+    task_progress = engine_decision["progress"]
 
     message = logic.workflow_state_message(workflow, task_breadcrumbs, decision_task_id)
     _update_last_decision_task_id(decision_task_id, workflow)
     return jsonify({
         "id": f"{workflow.id}",
-        "progress": engine_decision["progress"]["progress"],
+        "progress": task_progress["progress"],
         "message": message,
-        "milestones": engine_decision["progress"]["milestones"],
-        "milestoneListFullyResolved": engine_decision["progress"]["milestoneListFullyResolved"],
+        "milestones": task_progress["milestones"],
+        "milestoneListFullyResolved": task_progress["milestoneListFullyResolved"],
         "taskBreadcrumbs": task_breadcrumbs,
         "currentTask": {
             "id": decision_task_id,
-            "skipped": is_task_skipped(dataset_id, engine_decision["decision"]["id"]),
-            "manual": True,
-            "details": _mock_task_details(engine_decision["decision"]["content"])
+            "skipped": is_task_skipped(dataset_id, task["id"]),
+            "manual": task["manualConfirmationRequired"],
+            "milestoneID": task_progress["currentMilestoneID"],
+            "details": task_details
         }
     })
 
@@ -146,29 +151,17 @@ def is_task_skipped(dataset_id, task_id):
 @main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>')
 @login_required
 def workflow_task_details(dataset_id, task_id):
+    ckan_cli = _get_ckan_client_from_session()
+    workflow = model.get_workflow(dataset_id, current_user.id)
+    if not workflow:
+        return error.not_found(f"Couldn't get workflow for dataset {dataset_id}")
     try:
-        task_details = engine_client.get_action(task_id)
+        task = engine_client.get_action(ckan_cli, dataset_id, task_id, skip_actions=workflow.skipped_tasks)
     except Exception:
         log.exception(f"Failed to get task details {task_id}", exc_info=True)
         return error.not_found(f"Failed to get task details {task_id}")
-    return jsonify({
-        "id": f"{task_id}",
-        "skipped": is_task_skipped(dataset_id, task_id),
-        "details": _mock_task_details(task_details)
-    })
-
-
-def _mock_task_details(task_details):
-    mock = {
-        "milestoneId": "6",
-        "helpURLs": [
-            {"label": "Naomi help docs", "url": "http://example"},
-            {"label": "Spectrum documentation", "url": "http://example"}
-        ]
-    }
-    for k, v in mock.items():
-        task_details[k] = v
-    return task_details
+    task["skipped"] = is_task_skipped(dataset_id, task_id)
+    return jsonify(task)
 
 
 @main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>/complete', methods=['POST'])

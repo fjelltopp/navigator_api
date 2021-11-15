@@ -25,8 +25,23 @@ def get_decision(ckan_cli, dataset_id, skip_actions=None):
     return requests.post(urljoin(_engine_url(), "decide/"), data=json.dumps(body)).json()
 
 
-def get_action(action_id):
-    return requests.get(urljoin(_engine_url(), f"action/{action_id}")).json()["content"]
+def get_action(ckan_cli, dataset_id, action_id, skip_actions=None):
+    if not skip_actions:
+        skip_actions = []
+    body = {
+        "data":
+            {
+                "url": ckan_client.dataset_show_url(ckan_cli, dataset_id),
+                "authorization_header": ckan_cli.apikey
+            },
+        "actionID": action_id,
+        "skipActions": skip_actions
+    }
+    resp = requests.post(urljoin(_engine_url(), "action/"), data=json.dumps(body)).json()
+    task = resp["decision"]
+    progress = resp["progress"]
+    task["milestoneID"] = progress["currentMilestoneID"]
+    return task
 
 
 def _engine_url():
