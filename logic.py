@@ -10,7 +10,7 @@ def workflow_state_message(workflow, task_breadcrumbs, new_decision_action_id):
     if previous_task_id == new_decision_action_id:
         return {
             "level": "info",
-            "text": "Are you sure you have done this task. Looks like you haven't."
+            "text": "Are you sure you have done this task? Looks like you haven't."
         }
     elif previous_task_id in task_history_set:
         return {
