@@ -104,9 +104,6 @@ def workflow_state(dataset_id):
     task_details = task["content"]
     task_progress = engine_decision["progress"]
 
-    if len(task_breadcrumbs) and decision_task_id != task_breadcrumbs[-1]:
-        task_breadcrumbs.append(decision_task_id)
-
     message = logic.workflow_state_message(workflow, task_breadcrumbs, decision_task_id)
     _update_last_decision_task_id(decision_task_id, workflow)
     return jsonify({
