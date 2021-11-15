@@ -151,16 +151,17 @@ def is_task_skipped(dataset_id, task_id):
 @main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>')
 @login_required
 def workflow_task_details(dataset_id, task_id):
+    ckan_cli = _get_ckan_client_from_session()
+    workflow = model.get_workflow(dataset_id, current_user.id)
+    if not workflow:
+        return error.not_found(f"Couldn't get workflow for dataset {dataset_id}")
     try:
-        task_details = engine_client.get_action(task_id)
+        task = engine_client.get_action(ckan_cli, dataset_id, task_id, skip_actions=workflow.skipped_tasks)
     except Exception:
         log.exception(f"Failed to get task details {task_id}", exc_info=True)
         return error.not_found(f"Failed to get task details {task_id}")
-    return jsonify({
-        "id": f"{task_id}",
-        "skipped": is_task_skipped(dataset_id, task_id),
-        "details": task_details
-    })
+    task["skipped"] = is_task_skipped(dataset_id, task_id)
+    return jsonify(task)
 
 
 @main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>/complete', methods=['POST'])
