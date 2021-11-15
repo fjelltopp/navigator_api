@@ -98,6 +98,9 @@ def workflow_state(dataset_id):
         return error.error_response(500, f"Couldn't get decision engine details for dataset {dataset_id}")
 
     engine_decision = engine_client.get_decision(ckan_cli, dataset_id, skip_actions=workflow.skipped_tasks)
+    skipped_task_to_remove = engine_decision.get("removeSkipActions")
+    if skipped_task_to_remove:
+        logic.remove_tasks_from_skipped_list(workflow, skipped_task_to_remove)
     task_breadcrumbs = [str(action_id) for action_id in engine_decision["actions"]]
     task = engine_decision["decision"]
     decision_task_id = str(task["id"])
