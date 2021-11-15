@@ -20,13 +20,18 @@ def user():
 
 @pytest.fixture(scope="session")
 def test_app():
-    app = create_app('config.Testing')
-    with app.app_context():
-        yield app
+    return create_app('config.Testing')
+
+
+@pytest.fixture(scope="session")
+def test_client(test_app):
+    with test_app.test_client() as client:
+        yield client
 
 
 @pytest.fixture(autouse=True, scope="session")
 def setup(test_app):
-    model.db.create_all()
-    yield
-    model.db.drop_all()
+    with test_app.app_context():
+        model.db.create_all()
+        yield
+        model.db.drop_all()

@@ -25,6 +25,7 @@ ipdb = "==0.13.9"
 pydevd-pycharm = "*"
 factory-boy = "*"
 pytest-mock = "*"
+memcache = "*"
 
 [requires]
 python_version = "3.9"

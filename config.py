@@ -24,6 +24,11 @@ class Config(object):
 class Testing(Config):
     TESTING = True
     DEBUG = False
+    SESSION_TYPE = 'filesystem'
+    SESSION_FILE_DIR = os.path.join(basedir, 'test_session.cache')
+    SESSION_FILE_THRESHOLD = 500
+    SESSION_FILE_MODE = 384
+
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'test.db')
     LOGGING_LEVEL = logging.WARNING
 
