@@ -98,8 +98,12 @@ def workflow_state(dataset_id):
         return error.error_response(500, f"Couldn't get decision engine details for dataset {dataset_id}")
 
     engine_decision = engine_client.get_decision(ckan_cli, dataset_id, skip_actions=workflow.skipped_tasks)
-    decision_task_id = str(engine_decision["decision"]["id"])
     task_breadcrumbs = [str(action_id) for action_id in engine_decision["actions"]]
+    task = engine_decision["decision"]
+    decision_task_id = str(task["id"])
+    task_details = task["content"]
+    task_progress = engine_decision["progress"]
+
     if len(task_breadcrumbs) and decision_task_id != task_breadcrumbs[-1]:
         task_breadcrumbs.append(decision_task_id)
 
@@ -107,16 +111,17 @@ def workflow_state(dataset_id):
     _update_last_decision_task_id(decision_task_id, workflow)
     return jsonify({
         "id": f"{workflow.id}",
-        "progress": engine_decision["progress"]["progress"],
+        "progress": task_progress["progress"],
         "message": message,
-        "milestones": engine_decision["progress"]["milestones"],
-        "milestoneListFullyResolved": engine_decision["progress"]["milestoneListFullyResolved"],
+        "milestones": task_progress["milestones"],
+        "milestoneListFullyResolved": task_progress["milestoneListFullyResolved"],
         "taskBreadcrumbs": task_breadcrumbs,
         "currentTask": {
             "id": decision_task_id,
-            "skipped": is_task_skipped(dataset_id, engine_decision["decision"]["id"]),
-            "manual": True,
-            "details": _mock_task_details(engine_decision["decision"]["content"])
+            "skipped": is_task_skipped(dataset_id, task["id"]),
+            "manual": task["manualConfirmationRequired"],
+            "milestoneID": task_progress["currentMilestoneID"],
+            "details": task_details
         }
     })
 
@@ -154,21 +159,8 @@ def workflow_task_details(dataset_id, task_id):
     return jsonify({
         "id": f"{task_id}",
         "skipped": is_task_skipped(dataset_id, task_id),
-        "details": _mock_task_details(task_details)
+        "details": task_details
     })
-
-
-def _mock_task_details(task_details):
-    mock = {
-        "milestoneId": "6",
-        "helpURLs": [
-            {"label": "Naomi help docs", "url": "http://example"},
-            {"label": "Spectrum documentation", "url": "http://example"}
-        ]
-    }
-    for k, v in mock.items():
-        task_details[k] = v
-    return task_details
 
 
 @main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>/complete', methods=['POST'])
