@@ -161,6 +161,8 @@ def workflow_task_details(dataset_id, task_id):
         log.exception(f"Failed to get task details {task_id}", exc_info=True)
         return error.not_found(f"Failed to get task details {task_id}")
     task["skipped"] = is_task_skipped(dataset_id, task_id)
+    task["details"] = task["content"]
+    del task["content"]
     return jsonify(task)
 
 
