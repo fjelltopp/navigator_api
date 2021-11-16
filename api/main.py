@@ -90,8 +90,9 @@ def get_or_create_workflow(dataset_id, user_id, name=None):
 @login_required
 def workflow_state(dataset_id):
     ckan_cli = _get_ckan_client_from_session()
-    dataset = ckan_client.fetch_dataset_details(ckan_cli, dataset_id)
-    if not dataset:
+    try:
+        dataset = ckan_client.fetch_dataset_details(ckan_cli, dataset_id)
+    except ckan_client.NotFound:
         return error.not_found(f"Could not find dataset with id: {dataset_id}")
     workflow = get_or_create_workflow(dataset['id'], current_user.id, name=dataset['title'])
     if not workflow:
