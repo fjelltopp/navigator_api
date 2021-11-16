@@ -14,7 +14,7 @@ class Config(object):
     SESSION_TYPE = 'redis'
     SESSION_KEY_PREFIX = 'session_api:'
     SESSION_REDIS = Redis(host='redis-navigator', port=6379, db=0)
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+    SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI') or \
         'sqlite:///' + os.path.join(basedir, 'app.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     CKAN_URL = os.getenv("CKAN_URL", "http://adr.local")
