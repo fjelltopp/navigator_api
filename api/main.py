@@ -3,11 +3,11 @@ import logging
 from flask import Blueprint, jsonify, session
 from flask_login import login_required, current_user
 
-import clients.ckan_client as ckan_client
 import logic
 import model
 from api import error
 from clients import engine_client
+from clients import ckan_client
 
 main_blueprint = Blueprint('main', __name__)
 log = logging.getLogger(__name__)
@@ -72,7 +72,7 @@ def get_or_create_workflow(dataset_id, user_id, name=None):
     if not workflow:
         try:
             decision_engine = engine_client.get_decision_engine(dataset_id, user_id)
-        except Exception:
+        except engine_client.EngineError:
             return None
         workflow = model.Workflow(
             dataset_id=dataset_id,
@@ -96,8 +96,10 @@ def workflow_state(dataset_id):
     workflow = get_or_create_workflow(dataset['id'], current_user.id, name=dataset['title'])
     if not workflow:
         return error.error_response(500, f"Couldn't get decision engine details for dataset {dataset_id}")
-
-    engine_decision = engine_client.get_decision(ckan_cli, dataset_id, skip_actions=workflow.skipped_tasks)
+    try:
+        engine_decision = engine_client.get_decision(ckan_cli, dataset_id, skip_actions=workflow.skipped_tasks)
+    except engine_client.EngineError as err:
+        return error.error_response(500, f"Engine error: {err}")
     skipped_task_to_remove = engine_decision.get("removeSkipActions")
     if skipped_task_to_remove:
         logic.remove_tasks_from_skipped_list(workflow, skipped_task_to_remove)
@@ -157,7 +159,7 @@ def workflow_task_details(dataset_id, task_id):
         return error.not_found(f"Couldn't get workflow for dataset {dataset_id}")
     try:
         task = engine_client.get_action(ckan_cli, dataset_id, task_id, skip_actions=workflow.skipped_tasks)
-    except Exception:
+    except engine_client.EngineError:
         log.exception(f"Failed to get task details {task_id}", exc_info=True)
         return error.not_found(f"Failed to get task details {task_id}")
     task["skipped"] = is_task_skipped(dataset_id, task_id)

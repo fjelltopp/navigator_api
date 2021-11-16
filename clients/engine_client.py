@@ -1,3 +1,5 @@
+import logging
+
 import json
 import os
 import requests
@@ -5,6 +7,8 @@ from urllib.parse import urljoin
 from flask import current_app
 
 from clients import ckan_client
+
+log = logging.getLogger(__name__)
 
 
 def get_decision_engine(dataset_id, user_id):
@@ -22,7 +26,16 @@ def get_decision(ckan_cli, dataset_id, skip_actions=None):
             },
         "skipActions": skip_actions
     }
-    return requests.post(urljoin(_engine_url(), "decide/"), data=json.dumps(body)).json()
+    resp = requests.post(urljoin(_engine_url(), "decide/"), data=json.dumps(body))
+    if resp.status_code != 200:
+        log.error("Non 200 response from engine: %s", resp.text)
+        raise EngineError(f"Failed to get decision for dataset {dataset_id} from the engine")
+    try:
+        data = resp.json()
+    except json.decoder.JSONDecodeError:
+        log.exception("Failed to get json response from engine: %s", resp.text)
+        raise EngineError(f"Failed to get decision for dataset {dataset_id} from the engine")
+    return data
 
 
 def get_action(ckan_cli, dataset_id, action_id, skip_actions=None):
@@ -37,15 +50,27 @@ def get_action(ckan_cli, dataset_id, action_id, skip_actions=None):
         "actionID": action_id,
         "skipActions": skip_actions
     }
-    resp = requests.post(urljoin(_engine_url(), "action/"), data=json.dumps(body)).json()
-    task = resp["decision"]
-    progress = resp["progress"]
+    resp = requests.post(urljoin(_engine_url(), "action/"), data=json.dumps(body))
+    if resp.status_code != 200:
+        log.error("Non 200 response from engine: %s", resp.text)
+        raise EngineError(f"Failed to get action details {action_id} from the engine")
+    try:
+        data = resp.json()
+    except json.decoder.JSONDecodeError:
+        log.exception("Failed to get json response from engine: %s", resp.text)
+        raise EngineError(f"Failed to get action details {action_id} from the engine")
+    task = data["decision"]
+    progress = data["progress"]
     task["milestoneID"] = progress["currentMilestoneID"]
     return task
 
 
 def _engine_url():
     return urljoin(current_app.config['ENGINE_URL'], "api/")
+
+
+class EngineError(Exception):
+    pass
 
 
 if __name__ == '__main__':
