@@ -163,6 +163,8 @@ def workflow_task_details(dataset_id, task_id):
     task["skipped"] = is_task_skipped(dataset_id, task_id)
     task["details"] = task["content"]
     del task["content"]
+    task["manual"] = task["manualConfirmationRequired"]
+    del task["manualConfirmationRequired"]
     return jsonify(task)
 
 
