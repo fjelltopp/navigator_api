@@ -1,4 +1,7 @@
+from flask import session
+
 import model
+from clients import ckan_client
 
 
 def workflow_state_message(workflow, task_breadcrumbs, new_decision_action_id):
@@ -17,6 +20,13 @@ def workflow_state_message(workflow, task_breadcrumbs, new_decision_action_id):
     return None
 
 
+def is_task_completed(dataset_id, task_id):
+    ckan_cli = get_ckan_client_from_session()
+    wf_state = ckan_client.fetch_workflow_state(ckan_cli, dataset_id)
+    completed_tasks = set(wf_state["completedTasks"])
+    return str(task_id) in completed_tasks
+
+
 def remove_tasks_from_skipped_list(workflow, task_list):
     skipped_tasks = set(workflow.skipped_tasks)
     new_skipped_tasks = skipped_tasks - set(task_list)
@@ -24,3 +34,9 @@ def remove_tasks_from_skipped_list(workflow, task_list):
     model.db.session.add(workflow)
     model.db.session.commit()
     return None
+
+
+def get_ckan_client_from_session():
+    ckan_user = session['ckan_user']
+    ckan_cli = ckan_client.init_ckan(apikey=ckan_user['apikey'])
+    return ckan_cli

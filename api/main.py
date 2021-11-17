@@ -109,6 +109,7 @@ def workflow_state(dataset_id):
     decision_task_id = str(task["id"])
     task_details = task["content"]
     task_progress = engine_decision["progress"]
+    task_details['complete'] = logic.is_task_completed(dataset_id, decision_task_id)
 
     message = logic.workflow_state_message(workflow, task_breadcrumbs, decision_task_id)
     _update_last_decision_task_id(decision_task_id, workflow)
@@ -166,6 +167,7 @@ def workflow_task_details(dataset_id, task_id):
     task["skipped"] = is_task_skipped(dataset_id, task_id)
     task["details"] = task["content"]
     del task["content"]
+    task['details']['complete'] = logic.is_task_completed(dataset_id, task_id)
     task["manual"] = task["manualConfirmationRequired"]
     del task["manualConfirmationRequired"]
     return jsonify(task)
