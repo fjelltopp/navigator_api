@@ -22,7 +22,10 @@ def workflow_state_message(workflow, task_breadcrumbs, new_decision_action_id):
 
 def is_task_completed(dataset_id, task_id):
     ckan_cli = get_ckan_client_from_session()
-    wf_state = ckan_client.fetch_workflow_state(ckan_cli, dataset_id)
+    try:
+        wf_state = ckan_client.fetch_workflow_state(ckan_cli, dataset_id)
+    except ckan_client.NotFound:
+        return False
     completed_tasks = set(wf_state["completedTasks"])
     return str(task_id) in completed_tasks
 
