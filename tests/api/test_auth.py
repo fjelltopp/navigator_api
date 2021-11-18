@@ -6,10 +6,6 @@ from tests.helpers import ckan_client_test_double
 
 
 class TestLogin:
-    @pytest.fixture
-    def ckan_client_mock(self):
-        with patch('api.auth.ckan_client', wraps=ckan_client_test_double) as ckan_client_mock:
-            yield ckan_client_mock
 
     def test_login_with_valid_credentials(self, test_client, ckan_client_mock):
         r = test_client.post('login', json={"username": ckan_client_test_double.valid_username, "password": "pass"})

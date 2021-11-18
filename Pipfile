@@ -18,6 +18,7 @@ python-lorem = "*"
 flask-migrate = "*"
 psycopg2 = "*"
 requests = "*"
+helpers = "*"
 
 [dev-packages]
 flake8 = "*"

@@ -1,3 +1,5 @@
+from clients.ckan_client import NotFound
+
 valid_username = 'fjelltopp_user'
 
 
@@ -19,3 +21,32 @@ def authenticate_user(password, username):
             "number_created_packages": 1
         }
     return {}
+
+
+def fetch_country_estimates_datasets(ckan_cli):
+    pass
+
+
+def fetch_user_organization_ids(ckan_cli, capacity="editor"):
+    pass
+
+
+def fetch_user_collabolator_ids(ckan_cli, ckan_user_id=None, capacity="editor"):
+    pass
+
+
+def fetch_dataset_details(ckan_cli, dataset_id):
+    pass
+
+
+def fetch_workflow_state(ckan_cli, dataset_id):
+    pass
+
+
+def push_workflow_state(ckan_cli, dataset_id, workflow_state):
+    pass
+
+
+def dataset_show_url(ckan_cli, dataset_id):
+    pass
+
