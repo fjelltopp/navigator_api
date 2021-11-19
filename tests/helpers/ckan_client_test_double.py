@@ -1,4 +1,4 @@
-from clients.ckan_client import NotFound
+from clients.ckan_client import init_ckan, NotFound  # noqa: F401
 
 valid_username = 'fjelltopp_user'
 
@@ -24,15 +24,24 @@ def authenticate_user(password, username):
 
 
 def fetch_country_estimates_datasets(ckan_cli):
-    pass
+    return [
+        {
+            "id": f"dataset_{i}",
+            "title": f"Dataset {i}",
+            "organization": {
+                "id": f"org_{i}",
+                "title": f"Organization {i}"
+            }
+        } for i in range(1, 6)
+    ]
 
 
 def fetch_user_organization_ids(ckan_cli, capacity="editor"):
-    pass
+    return ["org_1"]
 
 
 def fetch_user_collabolator_ids(ckan_cli, ckan_user_id=None, capacity="editor"):
-    pass
+    return ["dataset_5"]
 
 
 def fetch_dataset_details(ckan_cli, dataset_id):
@@ -49,4 +58,3 @@ def push_workflow_state(ckan_cli, dataset_id, workflow_state):
 
 def dataset_show_url(ckan_cli, dataset_id):
     pass
-

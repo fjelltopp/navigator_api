@@ -40,12 +40,7 @@ def setup(test_app):
         model.db.drop_all()
 
 
-@pytest.fixture(scope="session")
-def ckan_client_mock():
-    with patch('api.auth.ckan_client', wraps=ckan_client_test_double) as ckan_client_mock:
-        yield ckan_client_mock
-
-
 @pytest.fixture
-def logged_in(test_client, ckan_client_mock):
-    test_client.post('/login', json={"username": ckan_client_test_double.valid_username, "password": "pass"})
+def logged_in(test_client):
+    with patch('api.auth.ckan_client', wraps=ckan_client_test_double):
+        test_client.post('/login', json={"username": ckan_client_test_double.valid_username, "password": "pass"})

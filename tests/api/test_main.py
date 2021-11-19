@@ -1,4 +1,9 @@
+from unittest.mock import patch
+
 import pytest
+
+from tests.helpers import ckan_client_test_double
+
 
 class TestMain:
     def test_index(self, test_client):
@@ -28,12 +33,34 @@ class TestMain:
                 pytest.fail(f"Unsupported http method {method}")
             assert r.status_code == 401
 
+
 @pytest.mark.usefixtures('logged_in')
 class TestUserDataAvaiable:
+    @pytest.fixture()
+    def ckan_client_mock(self):
+        with patch('api.main.ckan_client', wraps=ckan_client_test_double) as ckan_client_mock:
+            yield ckan_client_mock
+
     def test_user_details(self, test_client):
         r = test_client.get('/user')
         assert r.status_code == 200
         user_details = r.json
         assert user_details['fullname'] == 'Fake CkanUser'
         assert user_details['email'] == 'fake@fjelltopp.org'
+
+    def test_datasets_return_all_items(self, test_client, ckan_client_mock):
+        r = test_client.get('/datasets')
+        assert r.status_code == 200
+        datasets = r.json['datasets']
+        assert len(datasets) == 2
+        actual_dataset_ids = set(dataset['id'] for dataset in datasets)
+        assert "dataset_1" in actual_dataset_ids
+        assert "dataset_5" in actual_dataset_ids
+
+    def test_datasets_return_all_item_details(self, test_client, ckan_client_mock):
+        r = test_client.get('/datasets')
+        dataset = r.json['datasets'][0]
+        assert dataset['id']
+        assert dataset['name']
+        assert dataset['organizationName']
 
