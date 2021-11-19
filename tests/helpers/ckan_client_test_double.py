@@ -50,7 +50,9 @@ def fetch_dataset_details(ckan_cli, dataset_id):
 
 
 def fetch_workflow_state(ckan_cli, dataset_id):
-    pass
+    return {
+        "completedTasks": ["task2", "task3"]
+    }
 
 
 def push_workflow_state(ckan_cli, dataset_id, workflow_state):

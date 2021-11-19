@@ -1,4 +1,5 @@
 from flask import session
+from flask_login import current_user
 
 import model
 from clients import ckan_client
@@ -21,13 +22,25 @@ def workflow_state_message(workflow, task_breadcrumbs, new_decision_action_id):
 
 
 def is_task_completed(dataset_id, task_id):
-    ckan_cli = get_ckan_client_from_session()
-    try:
-        wf_state = ckan_client.fetch_workflow_state(ckan_cli, dataset_id)
-    except ckan_client.NotFound:
-        return False
-    completed_tasks = set(wf_state["completedTasks"])
-    return str(task_id) in completed_tasks
+    workflow = model.get_workflow(dataset_id, current_user.id)
+    task_statuses_map = workflow.task_statuses_map
+    task_status = task_statuses_map[task_id]
+    manual = task_status["manualConfirmationRequired"]
+    task_breadcrumbs = list(task_statuses_map.keys())
+    if manual:
+        ckan_cli = get_ckan_client_from_session()
+        try:
+            wf_state = ckan_client.fetch_workflow_state(ckan_cli, dataset_id)
+        except ckan_client.NotFound:
+            return False
+        completed_tasks = set(wf_state["completedTasks"])
+        return str(task_id) in completed_tasks
+    else:
+        skipped_tasks = workflow.skipped_tasks
+        if task_id == task_breadcrumbs[-1] or task_id in skipped_tasks:
+            return False
+        else:
+            return True
 
 
 def remove_tasks_from_skipped_list(workflow, task_list):
