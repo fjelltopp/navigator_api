@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
+from tests import factories
 from tests.helpers import ckan_client_test_double
 
 
@@ -64,3 +65,12 @@ class TestUserDataAvaiable:
         assert dataset['name']
         assert dataset['organizationName']
 
+    def test_workflow_list_returns_all_item_details(self, test_client, user):
+        factories.WorklowFactory.create_batch(10, user_id=ckan_client_test_double.valid_user_id)
+        r = test_client.get('/workflows')
+        assert r.status_code == 200
+        workflows = r.json['workflows']
+        assert len(workflows) == 10
+        for workflow in workflows:
+            assert workflow['id']
+            assert workflow['name']

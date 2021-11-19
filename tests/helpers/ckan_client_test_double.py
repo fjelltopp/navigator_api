@@ -1,6 +1,7 @@
 from clients.ckan_client import init_ckan, NotFound  # noqa: F401
 
 valid_username = 'fjelltopp_user'
+valid_user_id = "fake_user_id"
 
 
 def authenticate_user(password, username):
@@ -13,7 +14,7 @@ def authenticate_user(password, username):
             "name": "tomek",
             "created": "2019-09-18T08:34:32.156325",
             "image_display_url": "",
-            "id": "a3418c4d-62a0-5d26-89ba-01ba0f6057f0",
+            "id": valid_user_id,
             "state": "active",
             "image_url": "",
             "fullname": "Fake CkanUser",
