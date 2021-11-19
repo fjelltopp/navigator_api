@@ -140,3 +140,6 @@ cython_debug/
 
 # minikube
 .minikubevenv/
+
+# test resources
+test_session.cache

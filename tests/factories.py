@@ -9,6 +9,7 @@ class WorklowFactory(factory.alchemy.SQLAlchemyModelFactory):
         sqlalchemy_get_or_create = ('dataset_id', 'user_id')
         sqlalchemy_session_persistence = 'commit'
     id = factory.Sequence(lambda n: int(n))
+    name = factory.Faker('name')
     decision_engine_id = factory.Faker('uuid4')
     dataset_id = factory.Faker('uuid4')
     user_id = factory.Faker('uuid4')
