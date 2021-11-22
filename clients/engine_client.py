@@ -50,7 +50,7 @@ def get_action(ckan_cli, dataset_id, action_id, skip_actions=None):
         "actionID": action_id,
         "skipActions": skip_actions
     }
-    resp = requests.post(urljoin(_engine_url(), "action/"), data=json.dumps(body))
+    resp = requests.post(urljoin(_engine_url(), "decide/"), data=json.dumps(body))
     if resp.status_code != 200:
         log.error("Non 200 response from engine: %s", resp.text)
         raise EngineError(f"Failed to get action details {action_id} from the engine")
