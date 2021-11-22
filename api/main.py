@@ -173,6 +173,16 @@ def workflow_task_details(dataset_id, task_id):
     return jsonify(task)
 
 
+@main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>/complete', methods=['GET'])
+@login_required
+def workflow_task_complete_get(dataset_id, task_id):
+    is_completed = logic.is_task_completed(dataset_id, task_id)
+    return jsonify({
+        "id": task_id,
+        "completed": is_completed
+    })
+
+
 @main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>/complete', methods=['POST'])
 @login_required
 def workflow_task_complete(dataset_id, task_id):
