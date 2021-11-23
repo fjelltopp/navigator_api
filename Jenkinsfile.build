@@ -19,6 +19,7 @@ def build_docker_image(name, tag) {
 
 def tag = "${env.BRANCH_NAME}".toString().replaceAll("/", "_slash_")
 
+
 pipeline {
 
   options {
