@@ -43,3 +43,15 @@ def get_ckan_client_from_session():
     ckan_user = session['ckan_user']
     ckan_cli = ckan_client.init_ckan(apikey=ckan_user['apikey'])
     return ckan_cli
+
+
+def compose_task_details(dataset_id, task_id, task_details, task_status):
+    current_task = {
+        "id": task_id,
+        "skipped": task_status["skipped"],
+        "completed": is_task_completed(dataset_id, task_id),
+        "manual": task_status["manualConfirmationRequired"],
+        "milestoneID": task_status["milestoneID"],
+        "details": task_details
+    }
+    return current_task

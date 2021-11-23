@@ -1,3 +1,5 @@
+import json
+
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
@@ -21,6 +23,7 @@ class Workflow(db.Model):
     dataset_id = db.Column(db.String, nullable=False)
     user_id = db.Column(db.String, nullable=False)
     _skipped_tasks = db.Column(db.String, default='')
+    _task_statuses_map = db.Column(db.String, nullable=True, default='{}')
 
     @property
     def skipped_tasks(self):
@@ -31,3 +34,11 @@ class Workflow(db.Model):
     @skipped_tasks.setter
     def skipped_tasks(self, tasks_list):
         self._skipped_tasks = ';'.join(tasks_list)
+
+    @property
+    def task_statuses_map(self):
+        return json.loads(self._task_statuses_map)
+
+    @task_statuses_map.setter
+    def task_statuses_map(self, task_breadcrumbs):
+        self._task_statuses_map = json.dumps(task_breadcrumbs)
