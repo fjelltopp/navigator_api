@@ -101,18 +101,25 @@ def workflow_state(dataset_id):
         engine_decision = engine_client.get_decision(ckan_cli, dataset_id, skip_actions=workflow.skipped_tasks)
     except engine_client.EngineError as err:
         return error.error_response(500, f"Engine error: {err}")
+
     skipped_task_to_remove = engine_decision.get("removeSkipActions")
     if skipped_task_to_remove:
         logic.remove_tasks_from_skipped_list(workflow, skipped_task_to_remove)
-    task_breadcrumbs = [str(action_id) for action_id in engine_decision["actions"]]
+
+    task_statuses_map = {action['id']: action for action in engine_decision["actions"]}
+    workflow.task_statuses_map = task_statuses_map
+    model.db.session.add(workflow)
+    model.db.session.commit()
     task = engine_decision["decision"]
+
+    task_breadcrumbs = list(task_statuses_map.keys())
     decision_task_id = str(task["id"])
     task_details = task["content"]
     task_progress = engine_decision["progress"]
-    task_details['complete'] = logic.is_task_completed(dataset_id, decision_task_id)
 
     message = logic.workflow_state_message(workflow, task_breadcrumbs, decision_task_id)
     _update_last_decision_task_id(decision_task_id, workflow)
+    current_task = logic.compose_task_details(dataset_id, decision_task_id, task_details, task_statuses_map[decision_task_id])
     return jsonify({
         "id": f"{workflow.id}",
         "progress": task_progress["progress"],
@@ -120,13 +127,7 @@ def workflow_state(dataset_id):
         "milestones": task_progress["milestones"],
         "milestoneListFullyResolved": task_progress["milestoneListFullyResolved"],
         "taskBreadcrumbs": task_breadcrumbs,
-        "currentTask": {
-            "id": decision_task_id,
-            "skipped": is_task_skipped(dataset_id, task["id"]),
-            "manual": task["manualConfirmationRequired"],
-            "milestoneID": task_progress["currentMilestoneID"],
-            "details": task_details
-        }
+        "currentTask": current_task
     })
 
 
@@ -155,21 +156,16 @@ def is_task_skipped(dataset_id, task_id):
 @main_blueprint.route('/workflows/<dataset_id>/tasks/<task_id>')
 @login_required
 def workflow_task_details(dataset_id, task_id):
-    ckan_cli = _get_ckan_client_from_session()
     workflow = model.get_workflow(dataset_id, current_user.id)
     if not workflow:
         return error.not_found(f"Couldn't get workflow for dataset {dataset_id}")
     try:
-        task = engine_client.get_action(ckan_cli, dataset_id, task_id, skip_actions=workflow.skipped_tasks)
+        action = engine_client.get_action(task_id)
     except engine_client.EngineError:
         log.exception(f"Failed to get task details {task_id}", exc_info=True)
         return error.not_found(f"Failed to get task details {task_id}")
-    task["skipped"] = is_task_skipped(dataset_id, task_id)
-    task["details"] = task["content"]
-    del task["content"]
-    task['details']['complete'] = logic.is_task_completed(dataset_id, task_id)
-    task["manual"] = task["manualConfirmationRequired"]
-    del task["manualConfirmationRequired"]
+
+    task = logic.compose_task_details(dataset_id, task_id, action['content'], workflow.task_statuses_map[task_id])
     return jsonify(task)
 
 

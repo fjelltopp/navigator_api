@@ -13,7 +13,7 @@ from tests.helpers import ckan_client_test_double
 
 @pytest.fixture()
 def workflow():
-    return factories.WorklowFactory()
+    return factories.WorklowFactory.create()
 
 
 @pytest.fixture()
@@ -32,11 +32,12 @@ def test_client(test_app):
         yield client
 
 
-@pytest.fixture(autouse=True, scope="session")
+@pytest.fixture(autouse=True)
 def setup(test_app):
     with test_app.app_context():
         model.db.create_all()
         yield
+        model.db.session.close_all()
         model.db.drop_all()
 
 
