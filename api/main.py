@@ -119,7 +119,8 @@ def workflow_state(dataset_id):
 
     message = logic.workflow_state_message(workflow, task_breadcrumbs, decision_task_id)
     _update_last_decision_task_id(decision_task_id, workflow)
-    current_task = logic.compose_task_details(dataset_id, decision_task_id, task_details, task_statuses_map[decision_task_id])
+    current_task = logic.compose_task_details(dataset_id, decision_task_id, task_details,
+                                              task_statuses_map[decision_task_id])
     return jsonify({
         "id": f"{workflow.id}",
         "progress": task_progress["progress"],
@@ -251,6 +252,29 @@ def workflow_task_skip_delete(dataset_id, task_id):
         model.db.session.add(workflow)
         model.db.session.commit()
     return jsonify({"message": "success"})
+
+
+@main_blueprint.route('/workflows/<dataset_id>/tasks', methods=['GET'])
+@login_required
+def workflow_task_list(dataset_id):
+    ckan_cli = _get_ckan_client_from_session()
+    workflow = model.get_workflow(dataset_id, current_user.id)
+    if not workflow:
+        workflow_state(dataset_id)
+        workflow = model.get_workflow(dataset_id, current_user.id)
+    try:
+        task_list = engine_client.get_workflow_tasks(ckan_cli, dataset_id, skip_actions=workflow.skipped_tasks)
+    except engine_client.EngineError as err:
+        return error.error_response(500, f"Engine error: {err}")
+
+    task_list_with_milestones = logic.get_task_list_with_milestones(dataset_id, task_list['actionList'],
+                                                                    task_list['milestones'])
+
+    return jsonify({
+        "progress": task_list['progress'],
+        "fullyResolved": task_list['fullyResolved'],
+        "taskList": task_list_with_milestones
+    })
 
 
 def _get_ckan_client_from_session():

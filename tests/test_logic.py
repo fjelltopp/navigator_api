@@ -105,3 +105,45 @@ def test_is_task_completed_for_manual_tasks(logged_in, task_id, expected):
     workflow.task_statuses_map = automated_task_statuses
     with patch('logic.ckan_client', wraps=ckan_client_test_double):
         assert logic.is_task_completed(workflow.dataset_id, task_id) == expected
+
+
+def test_workflow_task_list():
+    tasks = [
+        {
+            "id": "EST-OVV-01-10-A",
+            "manualConfirmationRequired": True,
+            "milestoneID": None,
+            "reached": True,
+            "skipped": False,
+            "title": "Welcome to the Navigator"
+        }
+    ]
+    milestones = [
+        {
+            "completed": False,
+            "id": "EST-OVV-03-01-M",
+            "progress": 0,
+            "title": "Preparing Input Data for HIV Estimates"
+        },
+        {
+            "completed": False,
+            "id": "EST-OVV-04-01-M",
+            "progress": 0,
+            "title": "Upload Estimates Inputs Package Data Files to ADR"
+        },
+        {
+            "completed": False,
+            "id": "EST-OVV-05-01-M",
+            "progress": 0,
+            "title": "Review quality of programme data inputs using the *Review Inputs* function in Naomi"
+        }
+    ]
+    with patch('logic.is_task_completed', return_value=True):
+        result = logic.get_task_list_with_milestones("fake_dataset_id", tasks, milestones)
+    assert len(result) == 1
+    actual_milestone = result[0]
+    assert all(key in actual_milestone for key in ['id', 'title', 'progress', 'tasks'])
+    assert len(actual_milestone['tasks']) == 1
+    actual_task = actual_milestone['tasks'][0]
+    assert actual_task['id'] == "EST-OVV-01-10-A"
+    assert all(key in actual_task for key in ['id', 'milestoneID', 'reached', 'skipped', 'title', 'manual', 'completed'])

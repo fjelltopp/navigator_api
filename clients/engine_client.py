@@ -38,6 +38,29 @@ def get_decision(ckan_cli, dataset_id, skip_actions=None):
     return data
 
 
+def get_workflow_tasks(ckan_cli, dataset_id, skip_actions=None):
+    if not skip_actions:
+        skip_actions = []
+    body = {
+        "data":
+            {
+                "url": ckan_client.dataset_show_url(ckan_cli, dataset_id),
+                "authorization_header": ckan_cli.apikey
+            },
+        "skipActions": skip_actions
+    }
+    resp = requests.post(urljoin(_engine_url(), "decide/list"), data=json.dumps(body))
+    if resp.status_code != 200:
+        log.error("Non 200 response from engine: %s", resp.text)
+        raise EngineError(f"Failed to get decision list for dataset {dataset_id} from the engine")
+    try:
+        data = resp.json()
+    except json.decoder.JSONDecodeError:
+        log.exception("Failed to get json response from engine: %s", resp.text)
+        raise EngineError(f"Failed to get decision list for dataset {dataset_id} from the engine")
+    return data
+
+
 def get_action(action_id):
     resp = requests.get(urljoin(_engine_url(), f"action/{action_id}"))
     if resp.status_code != 200:
