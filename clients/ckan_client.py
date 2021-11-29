@@ -1,3 +1,5 @@
+import logging
+
 from urllib.parse import urljoin
 import json
 import io
@@ -8,6 +10,7 @@ from flask import current_app
 
 
 WORKFLOW_RESOURCE_TYPE = 'navigator-workflow-state'
+log = logging.getLogger(__name__)
 
 
 def init_ckan(apikey=None):
@@ -16,7 +19,10 @@ def init_ckan(apikey=None):
 
 def authenticate_user(password, username):
     ckan = init_ckan()
-    ckan_user = ckan.action.user_login(id=username, password=password)
+    try:
+        ckan_user = ckan.action.user_login(id=username, password=password)
+    except ckanapi.errors.CKANAPIError as err:
+        raise CkanError(str(err))
     return ckan_user
 
 
@@ -94,6 +100,10 @@ def _get_workflow_state(response):
 
 
 class NotFound(Exception):
+    pass
+
+
+class CkanError(Exception):
     pass
 
 
