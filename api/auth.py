@@ -1,3 +1,5 @@
+import logging
+
 from api import error
 from flask import Blueprint, request, jsonify, session
 from flask_login import login_user, UserMixin, logout_user, LoginManager
@@ -6,6 +8,7 @@ import clients.ckan_client as ckan_client
 
 login_manager = LoginManager()
 auth_blueprint = Blueprint('auth', __name__)
+logger = logging.getLogger(__name__)
 
 
 class User(UserMixin):
@@ -26,8 +29,11 @@ def login():
     username = request.json.get('username')
     password = request.json.get('password')
     remember = bool(request.json.get('remember', False))
-
-    ckan_user = ckan_client.authenticate_user(password, username)
+    try:
+        ckan_user = ckan_client.authenticate_user(password, username)
+    except ckan_client.CkanError:
+        logger.exception("Failed to call CKAN auth", exc_info=True)
+        return error.error_response(500, "Failed to connect to ADR auth")
     if not ckan_user.get('email'):
         return error.error_response(401, 'Bad credentials')
     else:

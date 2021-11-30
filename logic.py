@@ -68,3 +68,28 @@ def compose_task_details(dataset_id, task_id, task_details, task_status):
         "details": task_details
     }
     return current_task
+
+
+def get_task_list_with_milestones(dataset_id, tasks, milestones):
+    milestone_map = {milestone['id']: milestone for milestone in milestones}
+    task_list_with_milestones = []
+    last_milestone_id = None
+    for task in tasks:
+        task['manual'] = task['manualConfirmationRequired']
+        del task['manualConfirmationRequired']
+        task['completed'] = is_task_completed(dataset_id=dataset_id, task_id=task['id'])
+
+        milestone_id = task['milestoneID']
+        if len(task_list_with_milestones) > 0 and milestone_id == last_milestone_id:
+            milestone_with_tasks = task_list_with_milestones[-1]
+            milestone_with_tasks['tasks'].append(task)
+        else:
+            milestone = milestone_map.get(milestone_id, {})
+            task_list_with_milestones.append({
+                'id': milestone.get('id'),
+                'title': milestone.get('title'),
+                'progress': milestone.get('progress'),
+                'tasks': [task]
+            })
+            last_milestone_id = milestone_id
+    return task_list_with_milestones
