@@ -102,14 +102,7 @@ def workflow_state(dataset_id):
     except engine_client.EngineError as err:
         return error.error_response(500, f"Engine error: {err}")
 
-    skipped_task_to_remove = engine_decision.get("removeSkipActions")
-    if skipped_task_to_remove:
-        logic.remove_tasks_from_skipped_list(workflow, skipped_task_to_remove)
-
     task_statuses_map = {action['id']: action for action in engine_decision["actions"]}
-    workflow.task_statuses_map = task_statuses_map
-    model.db.session.add(workflow)
-    model.db.session.commit()
     task = engine_decision["decision"]
 
     task_breadcrumbs = list(task_statuses_map.keys())
@@ -118,7 +111,15 @@ def workflow_state(dataset_id):
     task_progress = engine_decision["progress"]
 
     message = logic.workflow_state_message(workflow, task_breadcrumbs, decision_task_id)
+
     _update_last_decision_task_id(decision_task_id, workflow)
+    workflow.task_statuses_map = task_statuses_map
+    model.db.session.add(workflow)
+    model.db.session.commit()
+    skipped_task_to_remove = engine_decision.get("removeSkipActions")
+    if skipped_task_to_remove:
+        logic.remove_tasks_from_skipped_list(workflow, skipped_task_to_remove)
+
     current_task = logic.compose_task_details(dataset_id, decision_task_id, task_details,
                                               task_statuses_map[decision_task_id])
     return jsonify({
@@ -281,3 +282,12 @@ def _get_ckan_client_from_session():
     ckan_user = session['ckan_user']
     ckan_cli = ckan_client.init_ckan(apikey=ckan_user['apikey'])
     return ckan_cli
+
+
+if __name__ == '__main__':
+    from app import create_app
+
+    app = create_app()
+    with app.app_context():
+
+        pass
