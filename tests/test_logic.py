@@ -8,22 +8,31 @@ from tests import factories
 from tests.helpers import ckan_client_test_double
 
 
-@pytest.mark.parametrize("task_breadcrumbs,task_id,last_engine_decision_id,expected_message",
+@pytest.mark.parametrize("task_breadcrumbs,task_id,last_engine_decision_id,previous_task_breadcrumbs,expected_message",
                          [
-                             ([f"task_{n}" for n in range(1, 6)], "task_5", "task_4", ""),
+                             ([f"task_{n}" for n in range(1, 6)], "task_5", "task_4",
+                                 [f"task_{n}" for n in range(1, 5)], ""),
                              ([f"task_{n}" for n in range(1, 6)], "task_5", "task_5",
-                              "Are you sure you have done this task? Looks like you haven't."),
-                             ([f"task_{n}" for n in range(1, 6)], "task_5", "task_2",
-                              "You need to deal with a previous task."),
+                                 [f"task_{n}" for n in range(1, 6)],
+                                 "It appears the task has either not been completed or is only partially completed"),
+                             ([f"task_{n}" for n in range(1, 3)], "task_2", "task_6",
+                                 [f"task_{n}" for n in range(1, 5)],
+                                 "You have been sent backwards to complete an earlier task"),
+                             ([f"task_{n}" for n in range(1, 8)], "task_7", "task_5",
+                                 [f"task_{n}" for n in range(1, 6)],
+                                 "you have been moved on multiple steps"),
                          ],
                          ids=[
                              "no message for next, consequitve task",
                              "info message for the same task twice",
-                             "info message if task from the past"
+                             "info message if task from the past",
+                             "info message if task with a few steps in the future"
                          ]
                          )
-def test_workflow_state_message(workflow, task_breadcrumbs, task_id, last_engine_decision_id, expected_message):
+def test_workflow_state_message(workflow, task_breadcrumbs, task_id, last_engine_decision_id, previous_task_breadcrumbs,
+                                expected_message):
     workflow.last_engine_decision_id = last_engine_decision_id
+    workflow.task_statuses_map = {task_id: {'id': task_id} for task_id in previous_task_breadcrumbs}
     message = logic.workflow_state_message(workflow, task_breadcrumbs, task_id) or {}
     actual = message.get("text", "")
 
@@ -66,9 +75,9 @@ def test_remove_tasks_from_skipped_list(workflow, skipped_tasks, skipped_tasks_t
                              ("task1", ["task1"], False),
                          ],
                          ids=[
-                            "automated current task is always not done",
-                            "automated unskipped task from breadcrumbs in done",
-                            "automated skipped task is not done",
+                             "automated current task is always not done",
+                             "automated unskipped task from breadcrumbs in done",
+                             "automated skipped task is not done",
                          ]
                          )
 def test_is_task_completed_for_automated_tasks(logged_in, task_id, skipped_tasks, expected):
@@ -90,9 +99,9 @@ def test_is_task_completed_for_automated_tasks(logged_in, task_id, skipped_tasks
                              ("task3", True)
                          ],
                          ids=[
-                            "task not marked as completed",
-                            "task marked as completed",
-                            "current task marked as completed"
+                             "task not marked as completed",
+                             "task marked as completed",
+                             "current task marked as completed"
                          ]
                          )
 def test_is_task_completed_for_manual_tasks(logged_in, task_id, expected):
@@ -146,4 +155,5 @@ def test_workflow_task_list():
     assert len(actual_milestone['tasks']) == 1
     actual_task = actual_milestone['tasks'][0]
     assert actual_task['id'] == "EST-OVV-01-10-A"
-    assert all(key in actual_task for key in ['id', 'milestoneID', 'reached', 'skipped', 'title', 'manual', 'completed'])
+    assert all(
+        key in actual_task for key in ['id', 'milestoneID', 'reached', 'skipped', 'title', 'manual', 'completed'])

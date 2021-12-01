@@ -5,18 +5,27 @@ import model
 from clients import ckan_client
 
 
-def workflow_state_message(workflow, task_breadcrumbs, new_decision_action_id):
-    task_history_set = set(task_breadcrumbs[:-2])
+def workflow_state_message(workflow, task_breadcrumbs, decision_action_id):
     previous_task_id = str(workflow.last_engine_decision_id)
-    if previous_task_id == new_decision_action_id:
+    previous_task_breadcrumbs = list(workflow.task_statuses_map.keys())
+    if previous_task_id == decision_action_id:
         return {
             "level": "info",
-            "text": "Are you sure you have done this task? Looks like you haven't."
+            "text": "The status of this task is checked automatically by Navigator. It appears the task has either not "
+                    "been completed or is only partially completed. Please review the task instructions again and "
+                    "complete the task before clicking “What’s Next?”."
         }
-    elif previous_task_id in task_history_set:
+    elif len(task_breadcrumbs) < len(previous_task_breadcrumbs):
         return {
             "level": "info",
-            "text": "You need to deal with a previous task."
+            "text": "You have been sent backwards to complete an earlier task, either because it can no longer be "
+                    "skipped, or Navigator has spotted it is now incomplete."
+        }
+    elif len(task_breadcrumbs) - len(previous_task_breadcrumbs) > 1:
+        return {
+            "level": "info",
+            "text": "Navigator can see that you have already completed some of your next tasks, so you have been moved "
+                    "on multiple steps to your next incomplete task."
         }
     return None
 
