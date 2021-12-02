@@ -22,8 +22,9 @@ def create_app(config_object=None):
     db.init_app(app)
     migrate.init_app(app, db)
     Session(app)
-    json_logging.init_flask(enable_json=app.config['JSON_LOGGING'])
-    json_logging.init_request_instrument(app)
+    if app.config['JSON_LOGGING']:
+        json_logging.init_flask(enable_json=True)
+        json_logging.init_request_instrument(app)
 
     from api.auth import auth_blueprint
     app.register_blueprint(auth_blueprint)
