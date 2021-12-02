@@ -3,6 +3,7 @@ import os
 from flask import Flask
 from flask_session import Session
 from flask_cors import CORS
+import json_logging
 
 from model import db, migrate
 from api.auth import login_manager
@@ -21,6 +22,8 @@ def create_app(config_object=None):
     db.init_app(app)
     migrate.init_app(app, db)
     Session(app)
+    json_logging.init_flask(enable_json=app.config['JSON_LOGGING'])
+    json_logging.init_request_instrument(app)
 
     from api.auth import auth_blueprint
     app.register_blueprint(auth_blueprint)

@@ -19,6 +19,7 @@ flask-migrate = "*"
 psycopg2 = "*"
 requests = "*"
 helpers = "*"
+json-logging = "*"
 
 [dev-packages]
 flake8 = "*"
