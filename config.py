@@ -6,6 +6,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 class Config(object):
+    ENV_TYPE = os.getenv("ENV_TYPE")
     DEBUG = True
     TESTING = False
     PRODUCTION = False
@@ -20,6 +21,7 @@ class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     CKAN_URL = os.getenv("CKAN_URL", "http://adr.local")
     ENGINE_URL = os.getenv("ENGINE_URL", "http://navigator-engine:5001")
+    SENTRY_DSN = os.getenv("SENTRY_DSN")
 
 
 class Testing(Config):
