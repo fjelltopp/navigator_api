@@ -36,7 +36,7 @@ def fetch_country_estimates_datasets(ckan_cli, include_private=True):
     return response["results"]
 
 
-def fetch_user_organization_ids(ckan_cli, capacity="editor"):
+def fetch_user_organization_ids(ckan_cli, capacity="create_dataset"):
     response = ckan_cli.action.organization_list_for_user(permission=capacity)
     return [org['id'] for org in response]
 

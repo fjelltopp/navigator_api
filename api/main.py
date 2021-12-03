@@ -36,7 +36,7 @@ def datasets():
     ckan_user = session['ckan_user']
     ckan_cli = _get_ckan_client_from_session()
     dataset_list = ckan_client.fetch_country_estimates_datasets(ckan_cli)
-    orgs = set(ckan_client.fetch_user_organization_ids(ckan_cli, capacity='editor'))
+    orgs = set(ckan_client.fetch_user_organization_ids(ckan_cli, capacity='create_dataset'))
     collab_datasets = set(
         ckan_client.fetch_user_collabolator_ids(ckan_cli, ckan_user_id=ckan_user['id'], capacity='editor')
     )
