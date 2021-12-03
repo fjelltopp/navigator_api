@@ -1,9 +1,11 @@
 import os
 
+import sentry_sdk
 from flask import Flask
 from flask_session import Session
 from flask_cors import CORS
 import json_logging
+from sentry_sdk.integrations.flask import FlaskIntegration
 
 from model import db, migrate
 from api.auth import login_manager
@@ -11,13 +13,20 @@ from api.auth import login_manager
 
 def create_app(config_object=None):
     app = Flask(__name__)
-    CORS(app)
-
     if not config_object:
         config_object = os.getenv('CONFIG_OBJECT', 'config.Config')
     app.config.from_object(config_object)
     app.url_map.strict_slashes = False
 
+    if app.config.get("SENTRY_DSN"):
+        sentry_sdk.init(
+            dsn=app.config["SENTRY_DSN"],
+            environment=app.config["ENV_TYPE"],
+            integrations=[FlaskIntegration()],
+            traces_sample_rate=1.0
+        )
+
+    CORS(app)
     login_manager.init_app(app)
     db.init_app(app)
     migrate.init_app(app, db)
