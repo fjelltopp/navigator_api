@@ -109,14 +109,14 @@ def workflow_state(dataset_id):
     decision_task_id = str(task["id"])
     task_details = task["content"]
     task_progress = engine_decision["progress"]
+    skipped_task_to_remove = engine_decision.get("removeSkipActions")
 
-    message = logic.workflow_state_message(workflow, task_breadcrumbs, decision_task_id)
+    message = logic.workflow_state_message(workflow, task_breadcrumbs, decision_task_id, skipped_task_to_remove)
 
     _update_last_decision_task_id(decision_task_id, workflow)
     workflow.task_statuses_map = task_statuses_map
     model.db.session.add(workflow)
     model.db.session.commit()
-    skipped_task_to_remove = engine_decision.get("removeSkipActions")
     if skipped_task_to_remove:
         logic.remove_tasks_from_skipped_list(workflow, skipped_task_to_remove)
 
