@@ -8,32 +8,43 @@ from tests import factories
 from tests.helpers import ckan_client_test_double
 
 
-@pytest.mark.parametrize("task_breadcrumbs,task_id,last_engine_decision_id,previous_task_breadcrumbs,expected_message",
-                         [
-                             ([f"task_{n}" for n in range(1, 6)], "task_5", "task_4",
-                                 [f"task_{n}" for n in range(1, 5)], ""),
-                             ([f"task_{n}" for n in range(1, 6)], "task_5", "task_5",
-                                 [f"task_{n}" for n in range(1, 6)],
-                                 "It appears the task has either not been completed or is only partially completed"),
-                             ([f"task_{n}" for n in range(1, 3)], "task_2", "task_6",
-                                 [f"task_{n}" for n in range(1, 5)],
-                                 "You have been sent backwards to complete an earlier task"),
-                             ([f"task_{n}" for n in range(1, 8)], "task_7", "task_5",
-                                 [f"task_{n}" for n in range(1, 6)],
-                                 "you have been moved on multiple steps"),
-                         ],
-                         ids=[
-                             "no message for next, consequitve task",
-                             "info message for the same task twice",
-                             "info message if task from the past",
-                             "info message if task with a few steps in the future"
-                         ]
-                         )
+@pytest.mark.parametrize(
+    (
+        "task_breadcrumbs",
+        "task_id",
+        "last_engine_decision_id",
+        "previous_task_breadcrumbs",
+        "skipped_tasks_to_remove",
+        "expected_message"
+    ),
+    [
+        ([f"task_{n}" for n in range(1, 6)], "task_5", "task_4",
+         [f"task_{n}" for n in range(1, 5)], [], ""),
+        ([f"task_{n}" for n in range(1, 6)], "task_5", "task_5",
+         [f"task_{n}" for n in range(1, 6)], [],
+         "It appears the task has either not been completed or is only partially completed"),
+        ([f"task_{n}" for n in range(1, 3)], "task_2", "task_6",
+         [f"task_{n}" for n in range(1, 5)], [],
+         "You have been sent backwards to complete an earlier task"),
+        ([f"task_{n}" for n in range(1, 8)], "task_7", "task_5",
+         [f"task_{n}" for n in range(1, 6)], [],
+         "you have been moved on multiple steps"),
+        ([f"task_{n}" for n in range(1, 6)], "task_5", "task_5",
+         [f"task_{n}" for n in range(1, 6)], ["task_5"], "you cannot skip this task")
+    ],
+    ids=[
+        "no message for next, consequitve task",
+        "info message for the same task twice",
+        "info message if task from the past",
+        "info message if task with a few steps in the future",
+        "info message if task cannot be skipped"
+    ]
+    )
 def test_workflow_state_message(workflow, task_breadcrumbs, task_id, last_engine_decision_id, previous_task_breadcrumbs,
-                                expected_message):
+                                skipped_tasks_to_remove, expected_message):
     workflow.last_engine_decision_id = last_engine_decision_id
     workflow.task_statuses_map = {task_id: {'id': task_id} for task_id in previous_task_breadcrumbs}
-    message = logic.workflow_state_message(workflow, task_breadcrumbs, task_id) or {}
+    message = logic.workflow_state_message(workflow, task_breadcrumbs, task_id, skipped_tasks_to_remove) or {}
     actual = message.get("text", "")
 
     assert expected_message in actual

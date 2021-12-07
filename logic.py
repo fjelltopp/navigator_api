@@ -5,10 +5,15 @@ import model
 from clients import ckan_client
 
 
-def workflow_state_message(workflow, task_breadcrumbs, decision_action_id):
+def workflow_state_message(workflow, task_breadcrumbs, decision_action_id, skipped_tasks_to_remove):
     previous_task_id = str(workflow.last_engine_decision_id)
     previous_task_breadcrumbs = list(workflow.task_statuses_map.keys())
-    if previous_task_id == decision_action_id:
+    if decision_action_id in skipped_tasks_to_remove:
+        return {
+            "level": "info",
+            "text": "Unfortunately you cannot skip this task.  You must complete this task to continue further."
+        }
+    elif previous_task_id == decision_action_id:
         return {
             "level": "info",
             "text": "The status of this task is checked automatically by Navigator. It appears the task has either not "
