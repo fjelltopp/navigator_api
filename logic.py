@@ -38,7 +38,9 @@ def workflow_state_message(workflow, task_breadcrumbs, decision_action_id, skipp
 def is_task_completed(dataset_id, task_id):
     workflow = model.get_workflow(dataset_id, current_user.id)
     task_statuses_map = workflow.task_statuses_map
-    task_status = task_statuses_map[task_id]
+    task_status = task_statuses_map.get(task_id)
+    if not task_status:
+        return False
     manual = task_status["manualConfirmationRequired"]
     task_breadcrumbs = list(task_statuses_map.keys())
     if manual:
