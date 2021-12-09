@@ -133,7 +133,6 @@ def test_is_task_completed_returns_false_for_unknown_task(logged_in):
     assert logic.is_task_completed(workflow.dataset_id, "unknown_task_id") is False
 
 
-
 def test_workflow_task_list():
     tasks = [
         {
