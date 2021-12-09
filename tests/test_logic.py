@@ -127,6 +127,12 @@ def test_is_task_completed_for_manual_tasks(logged_in, task_id, expected):
         assert logic.is_task_completed(workflow.dataset_id, task_id) == expected
 
 
+def test_is_task_completed_returns_false_for_unknown_task(logged_in):
+    workflow = factories.WorklowFactory.create(user_id=ckan_client_test_double.valid_user_id)
+    workflow.task_statuses_map = {"task1": {}, "task2": {}}
+    assert logic.is_task_completed(workflow.dataset_id, "unknown_task_id") is False
+
+
 def test_workflow_task_list():
     tasks = [
         {
