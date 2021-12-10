@@ -185,15 +185,8 @@ def workflow_task_complete_get(dataset_id, task_id):
 @login_required
 def workflow_task_complete(dataset_id, task_id):
     ckan_cli = _get_ckan_client_from_session()
-    try:
-        wf_state = ckan_client.fetch_workflow_state(ckan_cli, dataset_id)
-        completed_tasks = set(wf_state["completedTasks"])
-        completed_tasks.add(str(task_id))
-    except ckan_client.NotFound:
-        completed_tasks = {str(task_id)}
-    new_state = {
-        "completedTasks": list(completed_tasks)
-    }
+    workflow_state = logic.get_workflow_state(ckan_cli, dataset_id)
+    new_state = logic.complete_task(workflow_state, task_id)
     try:
         ckan_client.push_workflow_state(ckan_cli, dataset_id, new_state)
     except ckan_client.NotFound:
@@ -206,18 +199,11 @@ def workflow_task_complete(dataset_id, task_id):
 @login_required
 def workflow_task_undo_complete(dataset_id, task_id):
     ckan_cli = _get_ckan_client_from_session()
+    wf_state = logic.get_workflow_state(ckan_cli, dataset_id)
     try:
-        wf_state = ckan_client.fetch_workflow_state(ckan_cli, dataset_id)
-        completed_tasks = set(wf_state["completedTasks"])
-    except ckan_client.NotFound:
-        return error.not_found(f"Workflow completed tasks not found for dataset {dataset_id}")
-    try:
-        completed_tasks.remove(str(task_id))
-    except KeyError:
-        return error.not_found(f"Task {task_id} not found in completed tasks")
-    new_state = {
-        "completedTasks": list(completed_tasks)
-    }
+        new_state = logic.uncomplete_task(wf_state, task_id)
+    except logic.LogicError as e:
+        return error.not_found(str(e))
     try:
         ckan_client.push_workflow_state(ckan_cli, dataset_id, new_state)
     except ckan_client.NotFound:
