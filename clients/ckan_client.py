@@ -1,13 +1,13 @@
 import logging
 
 from urllib.parse import urljoin
-import json
 import io
 import os
 import ckanapi
 import requests
 from flask import current_app
 
+import logic
 
 WORKFLOW_RESOURCE_TYPE = 'navigator-workflow-state'
 log = logging.getLogger(__name__)
@@ -62,7 +62,8 @@ def fetch_workflow_state(ckan_cli, dataset_id):
             f"Dataset {dataset_id} does not contain navigator workflow state"
         )
     json_url = workflow_state_resource['url']
-    state_json = requests.get(json_url, headers={'Authorization': ckan_cli.apikey}).json()
+    state_r = requests.get(json_url, headers={'Authorization': ckan_cli.apikey})
+    state_json = logic.json_loads(state_r.text)
     return state_json
 
 
@@ -76,12 +77,12 @@ def push_workflow_state(ckan_cli, dataset_id, workflow_state):
             resource_type=WORKFLOW_RESOURCE_TYPE,
             filename="navigator_workflow.json",
             format="JSON",
-            upload=io.StringIO(json.dumps(workflow_state))
+            upload=io.StringIO(logic.json_dumps(workflow_state))
         )
     else:
         ckan_cli.action.resource_patch(
             id=workflow_state_resource['id'],
-            upload=io.StringIO(json.dumps(workflow_state))
+            upload=io.StringIO(logic.json_dumps(workflow_state))
         )
 
 
@@ -113,7 +114,7 @@ if __name__ == '__main__':
     app = create_app()
     with app.app_context():
         ckan_cli = init_ckan(apikey=os.getenv('CKAN_APIKEY'))
-        dataset_id = "3963fdf5-8915-448d-b8dd-9beca9c04a35"
-        fetch_workflow_state(ckan_cli, dataset_id)
+        dataset_id = "switzerland-country-estimates-2022"
+        state = fetch_workflow_state(ckan_cli, dataset_id)
         push_workflow_state(ckan_cli, dataset_id, {"completedTasks": ["Tomek"]})
         pass

@@ -1,5 +1,5 @@
-import datetime
-from unittest.mock import patch
+from datetime import datetime, timezone
+from unittest.mock import patch, MagicMock
 
 import pytest
 
@@ -140,12 +140,12 @@ def test_complete_task_updates_workflow_state(empty_workflow_state):
     assert workflow_state['completedTasks'][0]['id'] == task_id
 
 
-def test_complete_task_includes_timestamp(empty_workflow_state):
+def test_complete_task_includes_created_time(empty_workflow_state):
     task_id = "Task1"
-    now = datetime.datetime.now()
+    now = datetime.now(timezone.utc)
     workflow_state = logic.complete_task(empty_workflow_state, task_id)
-    actual_timestamp = workflow_state['completedTasks'][0].get('timestamp')
-    assert now < actual_timestamp
+    actual_created = workflow_state['completedTasks'][0].get('createdTime')
+    assert now < actual_created
 
 
 def test_complete_task_is_idempotent(empty_workflow_state):
@@ -187,6 +187,17 @@ def test_uncomplete_task_preserves_previous_state(workflow_state_with_completed_
 def test_uncomplete_task_raises_if_task_not_found(workflow_state_with_completed_tasks):
     with pytest.raises(logic.LogicError, match="NonExisting"):
         logic.uncomplete_task(workflow_state_with_completed_tasks, "NonExisting")
+
+
+def test_workflow_state_handles_legacy_format():
+    with patch('logic.ckan_client') as ckan_client_mock:
+        ckan_client_mock.fetch_workflow_state.return_value = {"completedTasks": ["task2", "task3"]}
+        ckan_cli_mock = MagicMock()
+        actual_workflow_state = logic.get_workflow_state(ckan_cli_mock, "a_dataset_id")
+        assert len(actual_workflow_state['completedTasks']) == 2
+        for task in actual_workflow_state['completedTasks']:
+            assert task['createdTime'] == 'Thu, 01 Jan 1970 00:00:00 +0000'
+
 
 
 
@@ -248,8 +259,8 @@ def empty_workflow_state():
 def workflow_state_with_completed_tasks():
     return {
         "completedTasks": [
-            {"id": "OldTask1", "timestamp": '2021-12-10 15:22:12.640480'},
-            {"id": "OldTask2", "timestamp": '2021-12-10 15:23:12.640480'},
-            {"id": "OldTask3", "timestamp": '2021-12-10 15:24:12.640480'}
+            {"id": "OldTask1", "createdTime": '2021-12-10 15:22:12.640480'},
+            {"id": "OldTask2", "createdTime": '2021-12-10 15:23:12.640480'},
+            {"id": "OldTask3", "createdTime": '2021-12-10 15:24:12.640480'}
         ]
     }

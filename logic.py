@@ -1,5 +1,8 @@
 import copy
+import json
+from datetime import datetime, timezone
 
+import flask
 from flask import session
 from flask_login import current_user
 
@@ -113,25 +116,26 @@ def get_task_list_with_milestones(dataset_id, tasks, milestones):
 
 def complete_task(workflow_state, task_id):
     new_state = copy.deepcopy(workflow_state)
-    completed_tasks = set(new_state["completedTasks"])
-    completed_tasks.add(str(task_id))
-    new_state["completedTasks"] = list(completed_tasks)
+    completed_tasks = set(task['id'] for task in new_state["completedTasks"])
+    if task_id not in completed_tasks:
+        new_state["completedTasks"].append({
+            "id": task_id,
+            "createdTime": datetime.now(timezone.utc)
+        })
     return new_state
 
 
 def uncomplete_task(workflow_state, task_id):
     new_state = copy.deepcopy(workflow_state)
-    completed_tasks = set(new_state["completedTasks"])
-    try:
-        completed_tasks.remove(str(task_id))
-    except KeyError:
+    completed_tasks = {task['id']: task for task in new_state["completedTasks"]}
+    if task_id not in completed_tasks:
         raise LogicError(f"Task {task_id} not found in completed tasks")
-    new_state["completedTasks"] = list(completed_tasks)
+    new_state["completedTasks"].remove(completed_tasks[task_id])
     return new_state
 
 
 def check_if_task_is_complete(task_id, wf_state):
-    completed_tasks = set(wf_state["completedTasks"])
+    completed_tasks = {task['id']: task for task in wf_state["completedTasks"]}
     return str(task_id) in completed_tasks
 
 
@@ -142,7 +146,34 @@ def get_workflow_state(ckan_cli, dataset_id):
         wf_state = {
             "completedTasks": []
         }
-    return wf_state
+    return _convert_legacy_workflow_state(wf_state)
+
+
+def _convert_legacy_workflow_state(workflow_state):
+    converted_completed_tasks = []
+    for completed_task in workflow_state['completedTasks']:
+        if isinstance(completed_task, str):
+            task_id = completed_task
+            default_created_time = 'Thu, 01 Jan 1970 00:00:00 +0000'
+            converted_completed_tasks.append({
+                'id': task_id,
+                'createdTime': default_created_time
+            })
+        else:
+            converted_completed_tasks.append(completed_task)
+    workflow_state["completedTasks"] = converted_completed_tasks
+    return workflow_state
+
+
+def json_dumps(obj):
+    # uses flask builtin json serializer which converts :class:`datetime.datetime` and :class:`datetime.date` are
+    #   serialized to :rfc:`822` strings. This is the same as the HTTP date format.
+    # to decode you can use `email.utils.parsedate_to_datetime(date)`
+    return json.dumps(obj, cls=flask.json.JSONEncoder)
+
+
+def json_loads(obj):
+    return json.loads(obj, cls=flask.json.JSONDecoder)
 
 
 class LogicError(Exception):
