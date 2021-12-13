@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from unittest.mock import patch
 
 import pytest
@@ -133,6 +134,59 @@ def test_is_task_completed_returns_false_for_unknown_task(logged_in):
     assert logic.is_task_completed(workflow.dataset_id, "unknown_task_id") is False
 
 
+def test_complete_task_updates_workflow_state(empty_workflow_state):
+    task_id = "Task1"
+    workflow_state = logic.complete_task(empty_workflow_state, task_id)
+    assert workflow_state['completedTasks'][0]['id'] == task_id
+
+
+def test_complete_task_includes_created_time(empty_workflow_state):
+    task_id = "Task1"
+    now = datetime.now(timezone.utc)
+    workflow_state = logic.complete_task(empty_workflow_state, task_id)
+    actual_created = workflow_state['completedTasks'][0].get('completedAt')
+    assert now < actual_created
+
+
+def test_complete_task_is_idempotent(empty_workflow_state):
+    task_id = "Task1"
+    logic.complete_task(empty_workflow_state, task_id)
+    workflow_state = logic.complete_task(empty_workflow_state, task_id)
+    assert len(workflow_state['completedTasks']) == 1
+
+
+def test_complete_task_preserves_previous_state(empty_workflow_state):
+    previously_completed_tasks = ["Task1", "Task2", "Task3"]
+    workflow_state = empty_workflow_state
+    for task_id in previously_completed_tasks:
+        workflow_state = logic.complete_task(workflow_state, task_id)
+    task_id = "NewTask"
+    workflow_state = logic.complete_task(workflow_state, task_id)
+    actual_completed_task_ids = _get_task_ids_set(workflow_state)
+    assert len(actual_completed_task_ids) == 4
+    for task_id in previously_completed_tasks:
+        assert task_id in actual_completed_task_ids
+
+
+def test_uncomplete_task_updates_workflow_state(workflow_state_with_completed_tasks):
+    workflow_state = logic.uncomplete_task(workflow_state_with_completed_tasks, "OldTask1")
+    actual_completed_task_ids = _get_task_ids_set(workflow_state)
+    assert "OldTask1" not in actual_completed_task_ids
+
+
+def test_uncomplete_task_preserves_previous_state(workflow_state_with_completed_tasks):
+    workflow_state = logic.uncomplete_task(workflow_state_with_completed_tasks, "OldTask1")
+    actual_completed_task_ids = _get_task_ids_set(workflow_state)
+    assert len(actual_completed_task_ids) == 2
+    for task_id in ["OldTask2", "OldTask3"]:
+        assert task_id in actual_completed_task_ids
+
+
+def test_uncomplete_task_raises_if_task_not_found(workflow_state_with_completed_tasks):
+    with pytest.raises(logic.LogicError, match="NonExisting"):
+        logic.uncomplete_task(workflow_state_with_completed_tasks, "NonExisting")
+
+
 def test_workflow_task_list():
     tasks = [
         {
@@ -174,3 +228,25 @@ def test_workflow_task_list():
     assert actual_task['id'] == "EST-OVV-01-10-A"
     assert all(
         key in actual_task for key in ['id', 'milestoneID', 'reached', 'skipped', 'title', 'manual', 'completed'])
+
+
+def _get_task_ids_set(workflow_state):
+    return {task['id'] for task in workflow_state['completedTasks']}
+
+
+@pytest.fixture
+def empty_workflow_state():
+    return {
+        "completedTasks": []
+    }
+
+
+@pytest.fixture
+def workflow_state_with_completed_tasks():
+    return {
+        "completedTasks": [
+            {"id": "OldTask1", "completedAt": 'Mon, 13 Dec 2021 15:22:12 +0000'},
+            {"id": "OldTask2", "completedAt": 'Mon, 13 Dec 2021 15:23:12 +0000'},
+            {"id": "OldTask3", "completedAt": 'Mon, 13 Dec 2021 15:23:12 +0000'},
+        ]
+    }

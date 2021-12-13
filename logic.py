@@ -1,3 +1,8 @@
+import copy
+import json
+from datetime import datetime, timezone
+
+import flask
 from flask import session
 from flask_login import current_user
 
@@ -45,12 +50,10 @@ def is_task_completed(dataset_id, task_id):
     task_breadcrumbs = list(task_statuses_map.keys())
     if manual:
         ckan_cli = get_ckan_client_from_session()
-        try:
-            wf_state = ckan_client.fetch_workflow_state(ckan_cli, dataset_id)
-        except ckan_client.NotFound:
+        wf_state = get_workflow_state(ckan_cli, dataset_id)
+        if not wf_state:
             return False
-        completed_tasks = set(wf_state["completedTasks"])
-        return str(task_id) in completed_tasks
+        return check_if_task_is_complete(task_id, wf_state)
     else:
         skipped_tasks = workflow.skipped_tasks
         if task_id == task_breadcrumbs[-1] or task_id in skipped_tasks:
@@ -109,3 +112,54 @@ def get_task_list_with_milestones(dataset_id, tasks, milestones):
             })
             last_milestone_id = milestone_id
     return task_list_with_milestones
+
+
+def complete_task(workflow_state, task_id):
+    new_state = copy.deepcopy(workflow_state)
+    completed_tasks = set(task['id'] for task in new_state["completedTasks"])
+    if task_id not in completed_tasks:
+        new_state["completedTasks"].append({
+            "id": task_id,
+            "completedAt": datetime.now(timezone.utc)
+        })
+    return new_state
+
+
+def uncomplete_task(workflow_state, task_id):
+    new_state = copy.deepcopy(workflow_state)
+    completed_tasks = {task['id']: task for task in new_state["completedTasks"]}
+    if task_id not in completed_tasks:
+        raise LogicError(f"Task {task_id} not found in completed tasks")
+    new_state["completedTasks"].remove(completed_tasks[task_id])
+    return new_state
+
+
+def check_if_task_is_complete(task_id, wf_state):
+    completed_tasks = {task['id'] for task in wf_state["completedTasks"]}
+    return str(task_id) in completed_tasks
+
+
+def get_workflow_state(ckan_cli, dataset_id):
+    try:
+        wf_state = ckan_client.fetch_workflow_state(ckan_cli, dataset_id)
+    except ckan_client.NotFound:
+        wf_state = {
+            "completedTasks": []
+        }
+    return wf_state
+
+
+def json_dumps(obj):
+    """Uses flask builtin json serializer which converts :class:`datetime.datetime` and :class:`datetime.date` are
+        serialized to :rfc:`822` strings. This is the same as the HTTP date format.
+    to decode you can use `email.utils.parsedate_to_datetime(date)`
+    """
+    return json.dumps(obj, cls=flask.json.JSONEncoder)
+
+
+def json_loads(obj):
+    return json.loads(obj, cls=flask.json.JSONDecoder)
+
+
+class LogicError(Exception):
+    pass
