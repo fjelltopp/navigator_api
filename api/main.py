@@ -278,6 +278,36 @@ def workflow_task_list(dataset_id):
     })
 
 
+@main_blueprint.route('/workflows/<dataset_id>/milestones/<milestone_id>', methods=['GET'])
+@login_required
+def workflow_milestone_details(dataset_id, milestone_id):
+    return jsonify({
+        "id": "EST-MIL-01-10-M",
+        "progress": 20,
+        "tasks": [
+            {
+                "completed": True,
+                "id": "EST-OVV-01-10-A",
+                "manual": True,
+                "milestoneID": "EST-MIL-01-10-M",
+                "reached": True,
+                "skipped": False,
+                "title": "Welcome to the UNAIDS HIV Estimates Navigator"
+            },
+            {
+                "completed": False,
+                "id": "EST-OVV-01-11-A",
+                "manual": True,
+                "milestoneID": "EST-MIL-01-10-M",
+                "reached": True,
+                "skipped": False,
+                "title": "Navigator tutorial: Skipping tasks"
+            }
+        ],
+        "title": "Navigator Tutorial"
+    })
+
+
 def _get_ckan_client_from_session():
     ckan_user = session['ckan_user']
     ckan_cli = ckan_client.init_ckan(apikey=ckan_user['apikey'])
