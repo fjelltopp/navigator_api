@@ -135,7 +135,7 @@ def uncomplete_task(workflow_state, task_id):
 
 
 def check_if_task_is_complete(task_id, wf_state):
-    completed_tasks = {task['id']: task for task in wf_state["completedTasks"]}
+    completed_tasks = {task['id'] for task in wf_state["completedTasks"]}
     return str(task_id) in completed_tasks
 
 
@@ -146,29 +146,14 @@ def get_workflow_state(ckan_cli, dataset_id):
         wf_state = {
             "completedTasks": []
         }
-    return _convert_legacy_workflow_state(wf_state)
-
-
-def _convert_legacy_workflow_state(workflow_state):
-    converted_completed_tasks = []
-    for completed_task in workflow_state['completedTasks']:
-        if isinstance(completed_task, str):
-            task_id = completed_task
-            default_created_time = 'Thu, 01 Jan 1970 00:00:00 +0000'
-            converted_completed_tasks.append({
-                'id': task_id,
-                'completedAt': default_created_time
-            })
-        else:
-            converted_completed_tasks.append(completed_task)
-    workflow_state["completedTasks"] = converted_completed_tasks
-    return workflow_state
+    return wf_state
 
 
 def json_dumps(obj):
-    # uses flask builtin json serializer which converts :class:`datetime.datetime` and :class:`datetime.date` are
-    #   serialized to :rfc:`822` strings. This is the same as the HTTP date format.
-    # to decode you can use `email.utils.parsedate_to_datetime(date)`
+    """Uses flask builtin json serializer which converts :class:`datetime.datetime` and :class:`datetime.date` are
+        serialized to :rfc:`822` strings. This is the same as the HTTP date format.
+    to decode you can use `email.utils.parsedate_to_datetime(date)`
+    """
     return json.dumps(obj, cls=flask.json.JSONEncoder)
 
 

@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
 
@@ -185,16 +185,6 @@ def test_uncomplete_task_preserves_previous_state(workflow_state_with_completed_
 def test_uncomplete_task_raises_if_task_not_found(workflow_state_with_completed_tasks):
     with pytest.raises(logic.LogicError, match="NonExisting"):
         logic.uncomplete_task(workflow_state_with_completed_tasks, "NonExisting")
-
-
-def test_workflow_state_handles_legacy_format():
-    with patch('logic.ckan_client') as ckan_client_mock:
-        ckan_client_mock.fetch_workflow_state.return_value = {"completedTasks": ["task2", "task3"]}
-        ckan_cli_mock = MagicMock()
-        actual_workflow_state = logic.get_workflow_state(ckan_cli_mock, "a_dataset_id")
-        assert len(actual_workflow_state['completedTasks']) == 2
-        for task in actual_workflow_state['completedTasks']:
-            assert task['completedAt'] == 'Thu, 01 Jan 1970 00:00:00 +0000'
 
 
 def test_workflow_task_list():
