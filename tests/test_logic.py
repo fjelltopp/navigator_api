@@ -144,7 +144,7 @@ def test_complete_task_includes_created_time(empty_workflow_state):
     task_id = "Task1"
     now = datetime.now(timezone.utc)
     workflow_state = logic.complete_task(empty_workflow_state, task_id)
-    actual_created = workflow_state['completedTasks'][0].get('createdTime')
+    actual_created = workflow_state['completedTasks'][0].get('completedAt')
     assert now < actual_created
 
 
@@ -194,7 +194,7 @@ def test_workflow_state_handles_legacy_format():
         actual_workflow_state = logic.get_workflow_state(ckan_cli_mock, "a_dataset_id")
         assert len(actual_workflow_state['completedTasks']) == 2
         for task in actual_workflow_state['completedTasks']:
-            assert task['createdTime'] == 'Thu, 01 Jan 1970 00:00:00 +0000'
+            assert task['completedAt'] == 'Thu, 01 Jan 1970 00:00:00 +0000'
 
 
 def test_workflow_task_list():
@@ -255,8 +255,8 @@ def empty_workflow_state():
 def workflow_state_with_completed_tasks():
     return {
         "completedTasks": [
-            {"id": "OldTask1", "createdTime": '2021-12-10 15:22:12.640480'},
-            {"id": "OldTask2", "createdTime": '2021-12-10 15:23:12.640480'},
-            {"id": "OldTask3", "createdTime": '2021-12-10 15:24:12.640480'}
+            {"id": "OldTask1", "completedAt": 'Mon, 13 Dec 2021 15:22:12 +0000'},
+            {"id": "OldTask2", "completedAt": 'Mon, 13 Dec 2021 15:23:12 +0000'},
+            {"id": "OldTask3", "completedAt": 'Mon, 13 Dec 2021 15:23:12 +0000'},
         ]
     }

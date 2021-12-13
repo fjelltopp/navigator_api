@@ -52,8 +52,8 @@ def fetch_dataset_details(ckan_cli, dataset_id):
 def fetch_workflow_state(ckan_cli, dataset_id):
     return {
         "completedTasks": [
-            {"id": "task2", "createdTime": '2021-12-10 15:22:12.640480'},
-            {"id": "task3", "createdTime": '2021-12-10 15:23:12.640480'}
+            {"id": "task2", "completedAt": '2021-12-10 15:22:12.640480'},
+            {"id": "task3", "completedAt": '2021-12-10 15:23:12.640480'}
         ]
     }
 

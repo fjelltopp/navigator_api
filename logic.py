@@ -120,7 +120,7 @@ def complete_task(workflow_state, task_id):
     if task_id not in completed_tasks:
         new_state["completedTasks"].append({
             "id": task_id,
-            "createdTime": datetime.now(timezone.utc)
+            "completedAt": datetime.now(timezone.utc)
         })
     return new_state
 
@@ -157,7 +157,7 @@ def _convert_legacy_workflow_state(workflow_state):
             default_created_time = 'Thu, 01 Jan 1970 00:00:00 +0000'
             converted_completed_tasks.append({
                 'id': task_id,
-                'createdTime': default_created_time
+                'completedAt': default_created_time
             })
         else:
             converted_completed_tasks.append(completed_task)
