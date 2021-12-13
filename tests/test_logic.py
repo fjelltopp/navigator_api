@@ -168,8 +168,6 @@ def test_complete_task_preserves_previous_state(empty_workflow_state):
         assert task_id in actual_completed_task_ids
 
 
-
-
 def test_uncomplete_task_updates_workflow_state(workflow_state_with_completed_tasks):
     workflow_state = logic.uncomplete_task(workflow_state_with_completed_tasks, "OldTask1")
     actual_completed_task_ids = _get_task_ids_set(workflow_state)
@@ -197,8 +195,6 @@ def test_workflow_state_handles_legacy_format():
         assert len(actual_workflow_state['completedTasks']) == 2
         for task in actual_workflow_state['completedTasks']:
             assert task['createdTime'] == 'Thu, 01 Jan 1970 00:00:00 +0000'
-
-
 
 
 def test_workflow_task_list():
