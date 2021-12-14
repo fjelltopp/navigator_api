@@ -122,6 +122,19 @@ def get_task_list_with_milestones(dataset_id, tasks, milestones):
     return task_list_with_milestones
 
 
+def get_milestone_task_list(dataset_id, milestone_id, tasks):
+    result = []
+    for task in tasks:
+        if task['milestoneID'] == milestone_id:
+            del task['milestoneID']
+            task['manual'] = task['manualConfirmationRequired']
+            del task['manualConfirmationRequired']
+            task['completed'] = is_task_completed(dataset_id=dataset_id, task_id=task['id'])
+            result.append(task)
+    return result
+
+
+
 def complete_task(workflow_state, task_id):
     new_state = copy.deepcopy(workflow_state)
     completed_tasks = set(task['id'] for task in new_state["completedTasks"])
