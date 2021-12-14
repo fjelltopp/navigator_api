@@ -134,7 +134,6 @@ def get_milestone_task_list(dataset_id, milestone_id, tasks):
     return result
 
 
-
 def complete_task(workflow_state, task_id):
     new_state = copy.deepcopy(workflow_state)
     completed_tasks = set(task['id'] for task in new_state["completedTasks"])
