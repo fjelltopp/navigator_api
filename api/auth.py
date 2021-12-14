@@ -7,7 +7,7 @@ from flask_login import login_user, UserMixin, logout_user, LoginManager
 import clients.ckan_client as ckan_client
 
 login_manager = LoginManager()
-auth_blueprint = Blueprint('auth', __name__)
+auth_bp = Blueprint('auth', __name__)
 logger = logging.getLogger(__name__)
 
 
@@ -24,7 +24,7 @@ def load_user(user_id):
     return None
 
 
-@auth_blueprint.route('/login', methods=['POST'])
+@auth_bp.route('/login', methods=['POST'])
 def login():
     username = request.json.get('username')
     password = request.json.get('password')
@@ -43,7 +43,7 @@ def login():
     return jsonify({"message": "Login successful"})
 
 
-@auth_blueprint.route('/logout', methods=['POST'])
+@auth_bp.route('/logout', methods=['POST'])
 def logout():
     logout_user()
     if 'ckan_user' in session:

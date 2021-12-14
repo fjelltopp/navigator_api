@@ -21,6 +21,7 @@ requests = "*"
 helpers = "*"
 json-logging = "*"
 sentry-sdk = {extras = ["flask"], version = "*"}
+cachetools = "*"
 
 [dev-packages]
 flake8 = "*"
