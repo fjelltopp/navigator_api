@@ -7,6 +7,7 @@ from flask_cors import CORS
 import json_logging
 from sentry_sdk.integrations.flask import FlaskIntegration
 
+import logic
 from model import db, migrate
 from api.auth import login_manager
 
@@ -40,6 +41,11 @@ def create_app(config_object=None):
 
     from api import api_bp
     app.register_blueprint(api_bp)
+
+    @app.before_request
+    def request_clear_cache():
+        with logic.lock:
+            logic.cache.clear()
 
     return app
 

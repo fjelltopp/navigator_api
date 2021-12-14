@@ -1,13 +1,21 @@
 import copy
 import json
+import logging
 from datetime import datetime, timezone
 
 import flask
+from cachetools import cached, Cache
+from cachetools.keys import hashkey
 from flask import session
 from flask_login import current_user
+from threading import Lock
 
 import model
 from clients import ckan_client
+log = logging.getLogger(__name__)
+
+lock = Lock()
+cache = Cache(150)
 
 
 def workflow_state_message(workflow, task_breadcrumbs, decision_action_id, skipped_tasks_to_remove):
@@ -139,6 +147,7 @@ def check_if_task_is_complete(task_id, wf_state):
     return str(task_id) in completed_tasks
 
 
+@cached(cache, key=lambda ckan_cli, dataset_id: hashkey('get_workflow_state', dataset_id), lock=lock)
 def get_workflow_state(ckan_cli, dataset_id):
     try:
         wf_state = ckan_client.fetch_workflow_state(ckan_cli, dataset_id)
