@@ -26,7 +26,7 @@ def test_app():
     return create_app('config.Testing')
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def test_client(test_app):
     with test_app.test_client() as client:
         yield client

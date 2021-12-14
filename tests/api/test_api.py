@@ -39,7 +39,7 @@ class TestMain:
 class TestUserDataAvaiable:
     @pytest.fixture()
     def ckan_client_mock(self):
-        with patch('api.main.ckan_client', wraps=ckan_client_test_double) as ckan_client_mock:
+        with patch('api.routes.ckan_client', wraps=ckan_client_test_double) as ckan_client_mock:
             yield ckan_client_mock
 
     def test_user_details(self, test_client):
