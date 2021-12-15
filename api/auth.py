@@ -1,7 +1,9 @@
 import logging
 
+from flask.sessions import SecureCookieSessionInterface
+
 from api import error
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify, session, url_for
 from flask_login import login_user, UserMixin, logout_user, LoginManager
 
 import clients.ckan_client as ckan_client
@@ -22,6 +24,15 @@ def load_user(user_id):
         if session['ckan_user']['id'] == user_id:
             return User(id=user_id)
     return None
+
+
+class SkipForInternalSessionInterface(SecureCookieSessionInterface):
+    """Prevent creating session for internal requests."""
+
+    def open_session(self, app, _request):
+        if request.path == url_for('healtz.healthz'):
+            return None
+        return super(SkipForInternalSessionInterface, self).open_session(app, request)
 
 
 @auth_bp.route('/login', methods=['POST'])

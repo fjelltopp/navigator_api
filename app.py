@@ -9,7 +9,7 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 
 import logic
 from model import db, migrate
-from api.auth import login_manager
+from api.auth import login_manager, SkipForInternalSessionInterface
 
 
 def create_app(config_object=None):
@@ -32,6 +32,7 @@ def create_app(config_object=None):
     db.init_app(app)
     migrate.init_app(app, db)
     Session(app)
+    app.session_interface = SkipForInternalSessionInterface()
     if app.config['JSON_LOGGING']:
         json_logging.init_flask(enable_json=True)
         json_logging.init_request_instrument(app)

@@ -17,7 +17,7 @@ def db_available():
 
 def redis_available():
     try:
-        redis = current_app.config['REDIS_HEALTH_CHECK']
+        redis = current_app.config['SESSION_REDIS']
         redis.ping()
     except Exception as e:
         return False, str(e)
