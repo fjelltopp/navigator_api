@@ -15,6 +15,7 @@ class Config(object):
     SECRET_KEY = 'tJNJzExKtefVbTj32sbg35'
     SESSION_TYPE = 'redis'
     SESSION_KEY_PREFIX = 'session_api:'
+    REDIS_HEALTH_CHECK = Redis(host='redis-navigator', port=6379, socket_connect_timeout=1)
     SESSION_REDIS = Redis(host='redis-navigator', port=6379, db=0)
     SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI') or \
         'sqlite:///' + os.path.join(basedir, 'app.db')

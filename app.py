@@ -42,6 +42,9 @@ def create_app(config_object=None):
     from api import api_bp
     app.register_blueprint(api_bp)
 
+    from healtz import healthz_bp
+    app.register_blueprint(healthz_bp)
+
     @app.before_request
     def request_clear_cache():
         with logic.lock:
