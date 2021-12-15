@@ -30,9 +30,9 @@ class SkipForInternalSessionInterface(SecureCookieSessionInterface):
     """Prevent creating session for internal requests."""
 
     def open_session(self, app, _request):
-        if request.path == url_for('healtz.healthz'):
+        if _request.path == url_for('healtz.healthz'):
             return None
-        return super(SkipForInternalSessionInterface, self).open_session(app, request)
+        return super(SkipForInternalSessionInterface, self).open_session(app, _request)
 
 
 @auth_bp.route('/login', methods=['POST'])
