@@ -26,7 +26,8 @@ def workflow_task_details(dataset_id, task_id):
         log.exception(f"Failed to get task details {task_id}", exc_info=True)
         return error.not_found(f"Failed to get task details {task_id}")
 
-    task = logic.compose_task_details(dataset_id, task_id, action['content'], workflow.task_statuses_map[task_id])
+    task_status = workflow.task_statuses_map.get(task_id, {})
+    task = logic.compose_task_details(dataset_id, task_id, action['content'], task_status)
     return jsonify(task)
 
 

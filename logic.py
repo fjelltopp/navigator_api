@@ -88,10 +88,11 @@ def get_ckan_client_from_session():
 def compose_task_details(dataset_id, task_id, task_details, task_status):
     current_task = {
         "id": task_id,
-        "skipped": task_status["skipped"],
+        "skipped": task_status.get("skipped", False),
+        "reached": task_status.get("reached", False),
         "completed": is_task_completed(dataset_id, task_id),
-        "manual": task_status["manualConfirmationRequired"],
-        "milestoneID": task_status["milestoneID"],
+        "manual": task_status.get("manualConfirmationRequired"),
+        "milestoneID": task_status.get("milestoneID"),
         "details": task_details
     }
     return current_task
