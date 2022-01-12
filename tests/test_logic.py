@@ -94,9 +94,9 @@ def test_remove_tasks_from_skipped_list(workflow, skipped_tasks, skipped_tasks_t
                          )
 def test_is_task_completed_for_automated_tasks(logged_in, task_id, skipped_tasks, expected):
     automated_task_statuses = {
-        "task1": {'manualConfirmationRequired': False},
-        "task2": {'manualConfirmationRequired': False},
-        "task3": {'manualConfirmationRequired': False}
+        "task1": {'manualConfirmationRequired': False, 'terminus': False},
+        "task2": {'manualConfirmationRequired': False, 'terminus': False},
+        "task3": {'manualConfirmationRequired': False, 'terminus': False}
     }
     workflow = factories.WorklowFactory.create(user_id=ckan_client_test_double.valid_user_id)
     workflow.skipped_tasks = skipped_tasks
@@ -118,9 +118,9 @@ def test_is_task_completed_for_automated_tasks(logged_in, task_id, skipped_tasks
                          )
 def test_is_task_completed_for_manual_tasks(logged_in, task_id, expected):
     automated_task_statuses = {
-        "task1": {'manualConfirmationRequired': True},
-        "task2": {'manualConfirmationRequired': True},
-        "task3": {'manualConfirmationRequired': True}
+        "task1": {'manualConfirmationRequired': True, "terminus": False},
+        "task2": {'manualConfirmationRequired': True, "terminus": False},
+        "task3": {'manualConfirmationRequired': True, "terminus": False}
     }
     workflow = factories.WorklowFactory.create(user_id=ckan_client_test_double.valid_user_id)
     workflow.task_statuses_map = automated_task_statuses
@@ -132,6 +132,22 @@ def test_is_task_completed_returns_false_for_unknown_task(logged_in):
     workflow = factories.WorklowFactory.create(user_id=ckan_client_test_double.valid_user_id)
     workflow.task_statuses_map = {"task1": {}, "task2": {}}
     assert logic.is_task_completed(workflow.dataset_id, "unknown_task_id") is False
+
+
+@pytest.mark.parametrize("task_id", ["task1", "task2"],
+                         ids=[
+                             "for manual terminus task",
+                             "for automated terminus task"
+                         ]
+                         )
+def test_is_task_completed_return_true_for_terminus_task(logged_in, task_id):
+    workflow = factories.WorklowFactory.create(user_id=ckan_client_test_double.valid_user_id)
+    workflow.task_statuses_map = {
+        "task1": {"manualConfirmationRequired": True, "terminus": True},
+        "task2": {"manualConfirmationRequired": False, "terminus": True}
+    }
+    with patch('logic.ckan_client', wraps=ckan_client_test_double):
+        assert logic.is_task_completed(workflow.dataset_id, task_id)
 
 
 def test_complete_task_updates_workflow_state(empty_workflow_state):
