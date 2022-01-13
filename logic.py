@@ -56,6 +56,8 @@ def is_task_completed(dataset_id, task_id):
         return False
     manual = task_status["manualConfirmationRequired"]
     task_breadcrumbs = list(task_statuses_map.keys())
+    if task_status['terminus']:
+        return True
     if manual:
         ckan_cli = get_ckan_client_from_session()
         wf_state = get_workflow_state(ckan_cli, dataset_id)
@@ -88,10 +90,11 @@ def get_ckan_client_from_session():
 def compose_task_details(dataset_id, task_id, task_details, task_status):
     current_task = {
         "id": task_id,
-        "skipped": task_status["skipped"],
+        "skipped": task_status.get("skipped", False),
+        "reached": task_status.get("reached", False),
         "completed": is_task_completed(dataset_id, task_id),
-        "manual": task_status["manualConfirmationRequired"],
-        "milestoneID": task_status["milestoneID"],
+        "manual": task_status.get("manualConfirmationRequired"),
+        "milestoneID": task_status.get("milestoneID"),
         "details": task_details
     }
     return current_task
