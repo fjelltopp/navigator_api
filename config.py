@@ -22,6 +22,8 @@ class Config(object):
     CKAN_URL = os.getenv("CKAN_URL", "http://adr.local")
     ENGINE_URL = os.getenv("ENGINE_URL", "http://navigator-engine:5001")
     SENTRY_DSN = os.getenv("SENTRY_DSN")
+    LANGUAGES = os.getenv('NAVIGATOR_LANGUAGES', 'en,fr,pt_PT').split(',')
+    DEFAULT_LANGUAGE = os.getenv('NAVIGATOR_DEFAULT_LANGUAGE', 'en')
 
 
 class Testing(Config):
