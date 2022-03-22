@@ -1,11 +1,12 @@
 import os
 
 import sentry_sdk
-from flask import Flask
+from flask import Flask, request
 from flask_session import Session
 from flask_cors import CORS
 import json_logging
 from sentry_sdk.integrations.flask import FlaskIntegration
+from flask_babel import Babel
 
 import logic
 from model import db, migrate
@@ -26,6 +27,8 @@ def create_app(config_object=None):
             integrations=[FlaskIntegration()],
             traces_sample_rate=1.0
         )
+
+    babel = Babel(app)
 
     CORS(app)
     login_manager.init_app(app)
@@ -50,6 +53,13 @@ def create_app(config_object=None):
     def request_clear_cache():
         with logic.lock:
             logic.cache.clear()
+
+    @babel.localeselector
+    def get_locale():
+        if request:
+            return request.accept_languages.best_match(app.config['LANGUAGES'])
+        else:
+            return app.config['DEFAULT_LANGUAGE']
 
     return app
 
