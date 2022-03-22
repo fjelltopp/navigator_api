@@ -6,6 +6,7 @@ import pytest
 import logic
 import model
 from tests import factories
+from time import sleep
 from tests.helpers import ckan_client_test_double
 
 
@@ -159,6 +160,7 @@ def test_complete_task_updates_workflow_state(empty_workflow_state):
 def test_complete_task_includes_created_time(empty_workflow_state):
     task_id = "Task1"
     now = datetime.now(timezone.utc)
+    sleep(0.1)
     workflow_state = logic.complete_task(empty_workflow_state, task_id)
     actual_created = workflow_state['completedTasks'][0].get('completedAt')
     assert now < actual_created
