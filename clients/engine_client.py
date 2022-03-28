@@ -5,6 +5,7 @@ import os
 import requests
 from urllib.parse import urljoin
 from flask import current_app
+from flask_babel import get_locale
 
 from clients import ckan_client
 
@@ -26,7 +27,8 @@ def get_decision(ckan_cli, dataset_id, skip_actions=None):
             },
         "skipActions": skip_actions
     }
-    resp = requests.post(urljoin(_engine_url(), "decide/"), data=json.dumps(body))
+    headers = {'Accept-Language': get_locale()}
+    resp = requests.post(urljoin(_engine_url(), "decide/"), data=json.dumps(body), headers=headers)
     if resp.status_code != 200:
         log.error("Non 200 response from engine: %s", resp.text)
         raise EngineError(f"Failed to get decision for dataset {dataset_id} from the engine")
@@ -49,7 +51,8 @@ def get_workflow_tasks(ckan_cli, dataset_id, skip_actions=None):
             },
         "skipActions": skip_actions
     }
-    resp = requests.post(urljoin(_engine_url(), "decide/list"), data=json.dumps(body))
+    headers = {'Accept-Language': get_locale()}
+    resp = requests.post(urljoin(_engine_url(), "decide/list"), data=json.dumps(body), headers=headers)
     if resp.status_code != 200:
         log.error("Non 200 response from engine: %s", resp.text)
         raise EngineError(f"Failed to get decision list for dataset {dataset_id} from the engine")
@@ -62,7 +65,8 @@ def get_workflow_tasks(ckan_cli, dataset_id, skip_actions=None):
 
 
 def get_action(action_id):
-    resp = requests.get(urljoin(_engine_url(), f"action/{action_id}"))
+    headers = {'Accept-Language': get_locale()}
+    resp = requests.get(urljoin(_engine_url(), f"action/{action_id}"), headers=headers)
     if resp.status_code != 200:
         log.error("Non 200 response from engine: %s", resp.text)
         raise EngineError(f"Failed to get action details {action_id} from the engine")
