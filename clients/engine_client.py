@@ -27,7 +27,7 @@ def get_decision(ckan_cli, dataset_id, skip_actions=None):
             },
         "skipActions": skip_actions
     }
-    headers = {'Accept-Language': get_locale()}
+    headers = {'Accept-Language': str(get_locale())}
     resp = requests.post(urljoin(_engine_url(), "decide/"), data=json.dumps(body), headers=headers)
     if resp.status_code != 200:
         log.error("Non 200 response from engine: %s", resp.text)
@@ -51,7 +51,7 @@ def get_workflow_tasks(ckan_cli, dataset_id, skip_actions=None):
             },
         "skipActions": skip_actions
     }
-    headers = {'Accept-Language': get_locale()}
+    headers = {'Accept-Language': str(get_locale())}
     resp = requests.post(urljoin(_engine_url(), "decide/list"), data=json.dumps(body), headers=headers)
     if resp.status_code != 200:
         log.error("Non 200 response from engine: %s", resp.text)
@@ -65,7 +65,7 @@ def get_workflow_tasks(ckan_cli, dataset_id, skip_actions=None):
 
 
 def get_action(action_id):
-    headers = {'Accept-Language': get_locale()}
+    headers = {'Accept-Language': str(get_locale())}
     resp = requests.get(urljoin(_engine_url(), f"action/{action_id}"), headers=headers)
     if resp.status_code != 200:
         log.error("Non 200 response from engine: %s", resp.text)
