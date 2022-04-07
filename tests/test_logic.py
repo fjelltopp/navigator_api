@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from unittest.mock import patch
 
 import pytest
@@ -158,10 +158,10 @@ def test_complete_task_updates_workflow_state(empty_workflow_state):
 
 def test_complete_task_includes_created_time(empty_workflow_state):
     task_id = "Task1"
-    now = datetime.now(timezone.utc)
+    second_ago = datetime.now(timezone.utc) - timedelta(seconds=1)
     workflow_state = logic.complete_task(empty_workflow_state, task_id)
     actual_created = workflow_state['completedTasks'][0].get('completedAt')
-    assert now < actual_created
+    assert second_ago < actual_created
 
 
 def test_complete_task_is_idempotent(empty_workflow_state):

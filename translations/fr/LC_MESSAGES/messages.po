@@ -1,0 +1,60 @@
+# French translations for UNAIDS NAVIGATOR API.
+# Copyright (C) 2022 FJELLTOPP LTD
+# This file is distributed under the same license as the UNAIDS NAVIGATOR API project.
+# JYRI SOPPELA <JYRI@FJELLTOPP.ORG>, 2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 0.1 \n"
+"Report-Msgid-Bugs-To: SUPPORT@FJELLTOPP.ORG\n"
+"POT-Creation-Date: 2022-03-23 08:19+0200\n"
+"PO-Revision-Date: 2022-03-23 08:44+0200\n"
+"Last-Translator: JYRI SOPPELA <JYRI@FJELLTOPP.ORG>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.1\n"
+
+#: logic.py:28
+msgid ""
+"Unfortunately you cannot skip this task.  You must complete this task to "
+"continue further."
+msgstr ""
+"Malheureusement, vous ne pouvez pas ignorer cette tâche. Vous devez terminer cette tâche pour "
+"continuer plus loin."
+
+#: logic.py:33
+msgid ""
+"The status of this task is checked automatically by Navigator. It appears"
+" the task has either not been completed or is only partially completed. "
+"Please review the task instructions again and complete the task before "
+"clicking “What’s Next?”."
+msgstr ""
+"L'état de cette tâche est vérifié automatiquement par Navigator. Il apparaît"
+" la tâche n'a pas été achevée ou n'est que partiellement achevée. "
+"Veuillez revoir les instructions de la tâche et terminer la tâche avant"
+"en cliquant sur \"Qu'est-ce qui va suivre?\"."
+
+#: logic.py:40
+msgid ""
+"You have been sent backwards to complete an earlier task, either because "
+"it can no longer be skipped, or Navigator has spotted it is now "
+"incomplete."
+msgstr ""
+"Vous avez été envoyé en arrière pour terminer une tâche précédente, soit parce que "
+"il ne peut plus être ignoré, ou Navigator a repéré qu'il est maintenant "
+"incomplet."
+
+#: logic.py:46
+msgid ""
+"Navigator can see that you have already completed some of your next "
+"tasks, so you have been moved on multiple steps to your next incomplete "
+"task."
+msgstr ""
+"Navigator peut voir que vous avez déjà terminé certaines de vos prochaines "
+"tâches, vous avez donc été déplacé sur plusieurs étapes vers votre prochaine tâche incomplète"
+"tâche."
+

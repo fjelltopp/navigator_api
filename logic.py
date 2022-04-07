@@ -9,6 +9,7 @@ from cachetools.keys import hashkey
 from flask import session
 from flask_login import current_user
 from threading import Lock
+from flask_babel import _
 
 import model
 from clients import ckan_client
@@ -24,26 +25,26 @@ def workflow_state_message(workflow, task_breadcrumbs, decision_action_id, skipp
     if decision_action_id in skipped_tasks_to_remove:
         return {
             "level": "info",
-            "text": "Unfortunately you cannot skip this task.  You must complete this task to continue further."
+            "text": _("Unfortunately you cannot skip this task.  You must complete this task to continue further.")
         }
     elif previous_task_id == decision_action_id:
         return {
             "level": "info",
-            "text": "The status of this task is checked automatically by Navigator. It appears the task has either not "
-                    "been completed or is only partially completed. Please review the task instructions again and "
-                    "complete the task before clicking “What’s Next?”."
+            "text": _("The status of this task is checked automatically by Navigator. It appears the task has either "
+                      "not been completed or is only partially completed. Please review the task instructions again "
+                      "and complete the task before clicking “What’s Next?”.")
         }
     elif len(task_breadcrumbs) < len(previous_task_breadcrumbs):
         return {
             "level": "info",
-            "text": "You have been sent backwards to complete an earlier task, either because it can no longer be "
-                    "skipped, or Navigator has spotted it is now incomplete."
+            "text": _("You have been sent backwards to complete an earlier task, either because it can no longer be "
+                      "skipped, or Navigator has spotted it is now incomplete.")
         }
     elif len(task_breadcrumbs) - len(previous_task_breadcrumbs) > 1:
         return {
             "level": "info",
-            "text": "Navigator can see that you have already completed some of your next tasks, so you have been moved "
-                    "on multiple steps to your next incomplete task."
+            "text": _("Navigator can see that you have already completed some of your next tasks, so you have been "
+                      "moved on multiple steps to your next incomplete task.")
         }
     return None
 
