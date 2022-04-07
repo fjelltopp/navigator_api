@@ -23,6 +23,8 @@ msgid ""
 "Unfortunately you cannot skip this task.  You must complete this task to "
 "continue further."
 msgstr ""
+"Infelizmente você não pode pular esta tarefa. Você deve concluir esta tarefa para "
+"continue mais"
 
 #: logic.py:33
 msgid ""
@@ -31,6 +33,10 @@ msgid ""
 "Please review the task instructions again and complete the task before "
 "clicking “What’s Next?”."
 msgstr ""
+"O status desta tarefa é verificado automaticamente pelo Navigator. Aparece"
+" a tarefa não foi concluída ou está apenas parcialmente concluída."
+"Por favor, revise as instruções da tarefa novamente e conclua a tarefa antes"
+"clicando em \"O que vem a seguir?\"."
 
 #: logic.py:40
 msgid ""
@@ -38,6 +44,9 @@ msgid ""
 "it can no longer be skipped, or Navigator has spotted it is now "
 "incomplete."
 msgstr ""
+"Você foi enviado de volta para completar uma tarefa anterior, seja porque "
+"não pode mais ser ignorado, ou o Navigator detectou que agora está "
+"incompleto."
 
 #: logic.py:46
 msgid ""
@@ -45,4 +54,7 @@ msgid ""
 "tasks, so you have been moved on multiple steps to your next incomplete "
 "task."
 msgstr ""
+"Navigator pode ver que você já completou alguns de seus próximos "
+"tarefas, então você foi movido em várias etapas para a próxima "
+"tarefa."
 
