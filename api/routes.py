@@ -1,9 +1,11 @@
 import logging
 
+from authlib.integrations.flask_oauth2 import ResourceProtector, current_token
 from flask import Blueprint, jsonify, session
 from flask_login import login_required
 
 import logic
+from api.validator import require_auth
 from clients import ckan_client
 
 api_bp = Blueprint('api', __name__)
@@ -16,8 +18,9 @@ def index():
 
 
 @api_bp.route('/user')
-@login_required
+@require_auth(None)
 def user_details():
+    return jsonify({'message': 'Hello!', 'current_token': current_token})
     _user_details = session['ckan_user']
     return jsonify(
         {
@@ -28,7 +31,7 @@ def user_details():
 
 
 @api_bp.route('/datasets')
-@login_required
+@require_auth(None)
 def datasets():
     ckan_user = session['ckan_user']
     ckan_cli = logic.get_ckan_client_from_session()

@@ -4,6 +4,7 @@ from flask_login import login_required, current_user
 import logic
 import model
 from api import error
+from api.validator import require_auth
 from api.workflow.routes import workflow_state
 from clients import engine_client
 
@@ -11,7 +12,7 @@ milestone_bp = Blueprint('milestone', __name__,)
 
 
 @milestone_bp.route('/workflows/<dataset_id>/milestones/<milestone_id>', methods=['GET'])
-@login_required
+@require_auth(None)
 def workflow_milestone_details(dataset_id, milestone_id):
     ckan_cli = logic.get_ckan_client_from_session()
     workflow = model.get_workflow(dataset_id, current_user.id)

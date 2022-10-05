@@ -24,6 +24,8 @@ sentry-sdk = {extras = ["flask"], version = "*"}
 cachetools = "*"
 py-healthcheck = "*"
 flask_babel = '*'
+authlib = '*'
+cffi = '*'
 
 [dev-packages]
 flake8 = "*"

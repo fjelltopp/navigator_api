@@ -1,17 +1,21 @@
+from authlib.integrations.flask_oauth2 import ResourceProtector
 from flask import Blueprint, jsonify
-from flask_login import login_required, current_user
+from flask_login import current_user
 
 import logic
 import model
 from api import error
+from api.validator import require_auth
 from clients import engine_client, ckan_client
 
 workflow_bp = Blueprint('workflow', __name__)
 
 
 @workflow_bp.route('/workflows')
-@login_required
+@require_auth(None)
 def workflow_list():
+    return jsonify({'message': 'Bangla!'})
+
     workflows = model.get_workflows(user_id=current_user.id)
     return jsonify({
         "workflows": [
@@ -43,7 +47,7 @@ def get_or_create_workflow(dataset_id, user_id, name=None):
 
 
 @workflow_bp.route('/workflows/<dataset_id>/state')
-@login_required
+@require_auth(None)
 def workflow_state(dataset_id):
     ckan_cli = logic.get_ckan_client_from_session()
     try:
@@ -90,7 +94,7 @@ def workflow_state(dataset_id):
 
 
 @workflow_bp.route('/workflows/<dataset_id>/state', methods=['DELETE'])
-@login_required
+@require_auth(None)
 def workflow_delete(dataset_id):
     workflow = model.get_workflow(dataset_id, current_user.id)
     if not workflow:
