@@ -29,3 +29,7 @@ validator = Auth0JWTBearerTokenValidator(
     "http://navigator.minikube"
 )
 require_auth.register_token_validator(validator)
+
+
+def extract_username_from_token(token):
+    return token['http://navigator.minikube/email']
