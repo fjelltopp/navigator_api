@@ -21,7 +21,6 @@ def index():
 @require_auth(None)
 def user_details():
     _user_details = get_user_details_for_email_or_404(extract_email_from_token(current_token))
-    log.warning(f"/user: {_user_details}")
     return jsonify(
         {
             "fullname": _user_details["fullname"],

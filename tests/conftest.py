@@ -1,9 +1,10 @@
-from unittest.mock import patch
-
 import uuid
+from unittest.mock import MagicMock
 
 import pytest
 
+import api.routes
+import auth0_integration
 import model
 from api.auth import User
 from app import create_app
@@ -42,6 +43,16 @@ def setup(test_app):
 
 
 @pytest.fixture
-def logged_in(test_client):
-    with patch('api.auth.ckan_client', wraps=ckan_client_test_double):
-        test_client.post('/login', json={"username": ckan_client_test_double.valid_username, "password": "pass"})
+def auth0_authorized():
+    auth0_integration.ResourceProtector.acquire_token = MagicMock
+
+
+@pytest.fixture
+def ckan_client_user_response():
+    api.routes.get_user_details_for_email_or_404 = \
+        MagicMock(return_value=ckan_client_test_double.USER_DETAILS)
+    api.routes.extract_email_from_token = \
+        MagicMock(return_value = ckan_client_test_double.valid_username)
+
+
+

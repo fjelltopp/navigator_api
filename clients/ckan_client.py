@@ -78,8 +78,8 @@ def fetch_user_organization_ids(ckan_cli, capacity="create_dataset"):
     return [org['id'] for org in response]
 
 
-def fetch_user_collabolator_ids(ckan_cli, ckan_username=None, capacity="editor"):
-    response = ckan_cli.action.package_collaborator_list_for_user(id=ckan_username, capacity=capacity)
+def fetch_user_collabolator_ids(ckan_cli, ckan_user_id=None, capacity="editor"):
+    response = ckan_cli.action.package_collaborator_list_for_user(id=ckan_user_id, capacity=capacity)
     return [dataset['package_id'] for dataset in response]
 
 

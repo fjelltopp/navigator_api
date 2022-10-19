@@ -22,7 +22,7 @@ class TestMain:
                                  ('/workflows/123/tasks/123/complete', ['POST', 'DELETE']),
                                  ('/workflows/123/tasks/123/skip', ['POST', 'DELETE']),
                              ])
-    def test_endpoint_require_logging_in(self, test_client, endpoint_path, http_methods):
+    def test_endpoints_require_authorization(self, test_client, endpoint_path, http_methods):
         for method in http_methods:
             if method == 'POST':
                 r = test_client.post(endpoint_path)
@@ -33,14 +33,12 @@ class TestMain:
             else:
                 pytest.fail(f"Unsupported http method {method}")
             assert r.status_code == 401
+            assert r.json["error"] == "missing_authorization"
+            assert r.json["error_description"] == 'Missing \"Authorization\" in headers.'
 
 
-@pytest.mark.usefixtures('logged_in')
-class TestUserDataAvaiable:
-    @pytest.fixture()
-    def ckan_client_mock(self):
-        with patch('api.routes.ckan_client', wraps=ckan_client_test_double) as ckan_client_mock:
-            yield ckan_client_mock
+@pytest.mark.usefixtures('auth0_authorized', 'ckan_client_user_response')
+class TestUserDataAvailable:
 
     def test_user_details(self, test_client):
         r = test_client.get('/user')
