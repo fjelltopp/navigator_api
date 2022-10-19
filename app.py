@@ -10,7 +10,7 @@ from flask_babel import Babel
 
 import logic
 from model import db, migrate
-from api.auth import login_manager, SkipForInternalSessionInterface
+from api.auth import SkipForInternalSessionInterface
 
 
 def create_app(config_object=None):
@@ -31,7 +31,6 @@ def create_app(config_object=None):
     babel = Babel(app)
 
     CORS(app)
-    login_manager.init_app(app)
     db.init_app(app)
     migrate.init_app(app, db)
     Session(app)

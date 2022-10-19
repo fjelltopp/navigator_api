@@ -101,7 +101,7 @@ def test_is_task_completed_for_automated_tasks(logged_in, task_id, skipped_tasks
     workflow = factories.WorklowFactory.create(user_id=ckan_client_test_double.valid_user_id)
     workflow.skipped_tasks = skipped_tasks
     workflow.task_statuses_map = automated_task_statuses
-    assert logic.is_task_completed(workflow.dataset_id, task_id) == expected
+    assert logic.is_task_completed(workflow.dataset_id, task_id, ckan_client_test_double.valid_user_id) == expected
 
 
 @pytest.mark.parametrize("task_id,expected",
@@ -125,13 +125,13 @@ def test_is_task_completed_for_manual_tasks(logged_in, task_id, expected):
     workflow = factories.WorklowFactory.create(user_id=ckan_client_test_double.valid_user_id)
     workflow.task_statuses_map = automated_task_statuses
     with patch('logic.ckan_client', wraps=ckan_client_test_double):
-        assert logic.is_task_completed(workflow.dataset_id, task_id) == expected
+        assert logic.is_task_completed(workflow.dataset_id, task_id, ckan_client_test_double.valid_user_id) == expected
 
 
 def test_is_task_completed_returns_false_for_unknown_task(logged_in):
     workflow = factories.WorklowFactory.create(user_id=ckan_client_test_double.valid_user_id)
     workflow.task_statuses_map = {"task1": {}, "task2": {}}
-    assert logic.is_task_completed(workflow.dataset_id, "unknown_task_id") is False
+    assert logic.is_task_completed(workflow.dataset_id, "unknown_task_id", ckan_client_test_double.valid_user_id) is False
 
 
 @pytest.mark.parametrize("task_id", ["task1", "task2"],
@@ -147,7 +147,7 @@ def test_is_task_completed_return_true_for_terminus_task(logged_in, task_id):
         "task2": {"manualConfirmationRequired": False, "terminus": True}
     }
     with patch('logic.ckan_client', wraps=ckan_client_test_double):
-        assert logic.is_task_completed(workflow.dataset_id, task_id)
+        assert logic.is_task_completed(workflow.dataset_id, task_id, ckan_client_test_double.valid_user_id)
 
 
 def test_complete_task_updates_workflow_state(empty_workflow_state):
@@ -235,7 +235,7 @@ def test_workflow_task_list():
         }
     ]
     with patch('logic.is_task_completed', return_value=True):
-        result = logic.get_task_list_with_milestones("fake_dataset_id", tasks, milestones)
+        result = logic.get_task_list_with_milestones("fake_dataset_id", tasks, milestones, ckan_client_test_double.valid_user_id)
     assert len(result) == 1
     actual_milestone = result[0]
     assert all(key in actual_milestone for key in ['id', 'title', 'progress', 'tasks'])

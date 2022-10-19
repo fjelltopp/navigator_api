@@ -1,20 +1,57 @@
-import logging
-
-from urllib.parse import urljoin
 import io
+import logging
 import os
+from urllib.parse import urljoin
+
 import ckanapi
 import requests
-from flask import current_app
+from werkzeug.exceptions import HTTPException
 
 import logic
 
 WORKFLOW_RESOURCE_TYPE = 'navigator-workflow-state'
 log = logging.getLogger(__name__)
 
+API_KEY = 'working-api-key'
+CKAN_URL = 'http://working-adr-address'
 
-def init_ckan(apikey=None):
-    return ckanapi.RemoteCKAN(current_app.config['CKAN_URL'], apikey=apikey)
+
+def get_user_details_for_email_or_404(email):
+    from api import error
+
+    ckan = init_ckan(API_KEY)
+    ret = ckan.action.user_list(email=email)
+    if not ret or len(ret) != 1:
+        log.warning(f'Incorrect user email ({email}), found {len(ret)} candidates')
+        raise HTTPException(response=error.not_found("User not found"))
+    return ret[0]
+
+
+def get_user_id_from_token_or_404(token):
+    return get_user_details_for_email_or_404(extract_email_from_token(token))['id']
+
+
+def get_username_from_token_or_404(token):
+    return get_user_details_for_email_or_404(extract_email_from_token(token))['name']
+
+
+def extract_email_from_token(token):
+    return token['http://navigator.minikube/email']
+
+
+def get_ckan_client_with_username_for_substitution_from_token(token):
+    username = get_username_from_token_or_404(token)
+
+    return init_ckan(API_KEY, username_for_substitution=username)
+
+
+def init_ckan(api=None, username_for_substitution=None):
+    session = None
+    if username_for_substitution:
+        session = requests.Session()
+        session.headers.update({'CKAN-Substitute-User': username_for_substitution})
+    return ckanapi.RemoteCKAN(CKAN_URL,
+                              apikey=api or API_KEY, session=session)
 
 
 def authenticate_user(password, username):
@@ -41,8 +78,8 @@ def fetch_user_organization_ids(ckan_cli, capacity="create_dataset"):
     return [org['id'] for org in response]
 
 
-def fetch_user_collabolator_ids(ckan_cli, ckan_user_id=None, capacity="editor"):
-    response = ckan_cli.action.package_collaborator_list_for_user(id=ckan_user_id, capacity=capacity)
+def fetch_user_collabolator_ids(ckan_cli, ckan_username=None, capacity="editor"):
+    response = ckan_cli.action.package_collaborator_list_for_user(id=ckan_username, capacity=capacity)
     return [dataset['package_id'] for dataset in response]
 
 

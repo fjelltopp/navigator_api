@@ -2,8 +2,8 @@ import json
 from urllib.request import urlopen
 
 from authlib.integrations.flask_oauth2 import ResourceProtector
+from authlib.jose import JsonWebKey
 from authlib.oauth2.rfc7523 import JWTBearerTokenValidator
-from authlib.jose.rfc7517.jwk import JsonWebKey
 
 
 class Auth0JWTBearerTokenValidator(JWTBearerTokenValidator):
@@ -25,11 +25,7 @@ class Auth0JWTBearerTokenValidator(JWTBearerTokenValidator):
 
 require_auth = ResourceProtector()
 validator = Auth0JWTBearerTokenValidator(
-    "hivtools.eu.auth0.com",
-    "http://navigator.minikube"
+    'hivtools.eu.auth0.com',
+    'http://navigator.minikube'
 )
 require_auth.register_token_validator(validator)
-
-
-def extract_username_from_token(token):
-    return token['http://navigator.minikube/email']

@@ -1,12 +1,14 @@
-from authlib.integrations.flask_oauth2 import ResourceProtector
+from authlib.integrations.flask_oauth2 import ResourceProtector, current_token
 from flask import Blueprint, jsonify
 from flask_login import current_user
 
 import logic
 import model
 from api import error
-from api.validator import require_auth
+from api.auth0_integration import require_auth
 from clients import engine_client, ckan_client
+from clients.ckan_client import get_user_details_for_email_or_404, extract_email_from_token, \
+    get_user_id_from_token_or_404, get_username_from_token_or_404
 
 workflow_bp = Blueprint('workflow', __name__)
 
@@ -14,9 +16,8 @@ workflow_bp = Blueprint('workflow', __name__)
 @workflow_bp.route('/workflows')
 @require_auth(None)
 def workflow_list():
-    return jsonify({'message': 'Bangla!'})
-
-    workflows = model.get_workflows(user_id=current_user.id)
+    _user_details = get_user_details_for_email_or_404(extract_email_from_token(current_token))
+    workflows = model.get_workflows(user_id=_user_details['id'])
     return jsonify({
         "workflows": [
             {
@@ -49,12 +50,13 @@ def get_or_create_workflow(dataset_id, user_id, name=None):
 @workflow_bp.route('/workflows/<dataset_id>/state')
 @require_auth(None)
 def workflow_state(dataset_id):
-    ckan_cli = logic.get_ckan_client_from_session()
+    ckan_cli = ckan_client.init_ckan(username_for_substitution=get_username_from_token_or_404(current_token))
+    user_id = get_user_id_from_token_or_404(current_token)
     try:
         dataset = ckan_client.fetch_dataset_details(ckan_cli, dataset_id)
     except ckan_client.NotFound:
         return error.not_found(f"Could not find dataset with id: {dataset_id}")
-    workflow = get_or_create_workflow(dataset['id'], current_user.id, name=dataset['title'])
+    workflow = get_or_create_workflow(dataset['id'], user_id, name=dataset['title'])
     if not workflow:
         return error.error_response(500, f"Couldn't get decision engine details for dataset {dataset_id}")
     try:
@@ -81,7 +83,7 @@ def workflow_state(dataset_id):
         logic.remove_tasks_from_skipped_list(workflow, skipped_tasks_to_remove)
 
     current_task = logic.compose_task_details(dataset_id, decision_task_id, task_details,
-                                              task_statuses_map[decision_task_id])
+                                              task_statuses_map[decision_task_id], user_id)
     return jsonify({
         "id": f"{workflow.id}",
         "progress": task_progress["progress"],
@@ -96,7 +98,8 @@ def workflow_state(dataset_id):
 @workflow_bp.route('/workflows/<dataset_id>/state', methods=['DELETE'])
 @require_auth(None)
 def workflow_delete(dataset_id):
-    workflow = model.get_workflow(dataset_id, current_user.id)
+    user_id = get_user_id_from_token_or_404(current_token)
+    workflow = model.get_workflow(dataset_id, user_id)
     if not workflow:
         return error.error_response(404, f"Workflow for dataset {dataset_id} not found.")
     model.db.session.delete(workflow)

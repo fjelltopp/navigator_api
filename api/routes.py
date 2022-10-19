@@ -1,12 +1,12 @@
 import logging
 
 from authlib.integrations.flask_oauth2 import current_token
-from flask import Blueprint, jsonify, session
-from flask_login import login_required
+from flask import Blueprint, jsonify
 
-import logic
-from api.validator import require_auth, extract_username_from_token
+from api.auth0_integration import require_auth
 from clients import ckan_client
+from clients.ckan_client import init_ckan, extract_email_from_token, \
+    get_user_details_for_email_or_404, get_username_from_token_or_404
 
 api_bp = Blueprint('api', __name__)
 log = logging.getLogger(__name__)
@@ -20,12 +20,12 @@ def index():
 @api_bp.route('/user')
 @require_auth(None)
 def user_details():
-    return jsonify({'message': 'Hello!', 'email': extract_username_from_token(current_token)})
-    _user_details = session['ckan_user']
+    _user_details = get_user_details_for_email_or_404(extract_email_from_token(current_token))
+    log.warning(f"/user: {_user_details}")
     return jsonify(
         {
             "fullname": _user_details["fullname"],
-            "email": _user_details["email"],
+            "email": _user_details["email"]
         }
     )
 
@@ -33,12 +33,12 @@ def user_details():
 @api_bp.route('/datasets')
 @require_auth(None)
 def datasets():
-    ckan_user = session['ckan_user']
-    ckan_cli = logic.get_ckan_client_from_session()
+    username = get_username_from_token_or_404(current_token)
+    ckan_cli = init_ckan(username_for_substitution=username)
     dataset_list = ckan_client.fetch_country_estimates_datasets(ckan_cli)
     orgs = set(ckan_client.fetch_user_organization_ids(ckan_cli, capacity='create_dataset'))
     collab_datasets = set(
-        ckan_client.fetch_user_collabolator_ids(ckan_cli, ckan_user_id=ckan_user['id'], capacity='editor')
+        ckan_client.fetch_user_collabolator_ids(ckan_cli, username, capacity='editor')
     )
     result = []
     for dataset in dataset_list:
