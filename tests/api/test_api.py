@@ -1,5 +1,4 @@
 from unittest.mock import patch
-
 import pytest
 
 from tests import factories
@@ -37,17 +36,19 @@ class TestMain:
             assert r.json["error_description"] == 'Missing \"Authorization\" in headers.'
 
 
-@pytest.mark.usefixtures('auth0_authorized', 'ckan_client_user_response')
+@pytest.mark.usefixtures('auth0_authorized')
 class TestUserDataAvailable:
 
-    def test_user_details(self, test_client):
+    @patch('api.routes.ckan_client', wraps=ckan_client_test_double)
+    def test_user_details(self, ckan_client_mock, test_client):
         r = test_client.get('/user')
         assert r.status_code == 200
         user_details = r.json
         assert user_details['fullname'] == 'Fake CkanUser'
         assert user_details['email'] == 'fake@fjelltopp.org'
 
-    def test_datasets_return_all_items(self, test_client, ckan_client_mock):
+    @patch('api.routes.ckan_client', wraps=ckan_client_test_double)
+    def test_datasets_return_all_items(self, ckan_client_mock, test_client):
         r = test_client.get('/datasets')
         assert r.status_code == 200
         datasets = r.json['datasets']
@@ -56,14 +57,16 @@ class TestUserDataAvailable:
         assert "dataset_1" in actual_dataset_ids
         assert "dataset_5" in actual_dataset_ids
 
-    def test_datasets_return_all_item_details(self, test_client, ckan_client_mock):
+    @patch('api.routes.ckan_client', wraps=ckan_client_test_double)
+    def test_datasets_return_all_item_details(self, ckan_client_mock, test_client):
         r = test_client.get('/datasets')
         dataset = r.json['datasets'][0]
         assert dataset['id']
         assert dataset['name']
         assert dataset['organizationName']
 
-    def test_workflow_list_returns_all_item_details(self, test_client, user):
+    @patch('api.workflow.routes.ckan_client', wraps=ckan_client_test_double)
+    def test_workflow_list_returns_all_item_details(self, ckan_client_mock, test_client, user):
         factories.WorklowFactory.create_batch(10, user_id=ckan_client_test_double.valid_user_id)
         r = test_client.get('/workflows')
         assert r.status_code == 200

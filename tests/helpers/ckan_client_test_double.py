@@ -2,6 +2,7 @@ from clients.ckan_client import init_ckan, NotFound  # noqa: F401
 
 valid_username = 'fjelltopp_user'
 valid_user_id = "fake_user_id"
+valid_user_email = "fake@fjelltopp.org"
 USER_DETAILS = {
     "email_hash": "0e774ad846b368575ab7ca8738d114d",
     "about": "Stubbed CKAN user",
@@ -14,7 +15,7 @@ USER_DETAILS = {
     "state": "active",
     "image_url": "",
     "fullname": "Fake CkanUser",
-    "email": "fake@fjelltopp.org",
+    "email": valid_user_email,
     "number_created_packages": 1
 }
 
@@ -25,8 +26,20 @@ def authenticate_user(password, username):
     return {}
 
 
-def get_user_details_for_email_or_404():
-    return authenticate_user(valid_username, valid_username)
+def get_user_details_for_email_or_404(email):
+    return USER_DETAILS
+
+
+def get_user_id_from_token_or_404(token):
+    return USER_DETAILS['id']
+
+
+def get_username_from_token_or_404(token):
+    return USER_DETAILS['name']
+
+
+def extract_email_from_token(token):
+    return valid_user_email
 
 
 def fetch_country_estimates_datasets(ckan_cli):

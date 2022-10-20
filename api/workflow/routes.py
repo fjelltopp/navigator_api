@@ -1,4 +1,4 @@
-from authlib.integrations.flask_oauth2 import ResourceProtector, current_token
+from authlib.integrations.flask_oauth2 import current_token
 from flask import Blueprint, jsonify
 from flask_login import current_user
 
@@ -7,8 +7,6 @@ import model
 from api import error
 from api.auth0_integration import require_auth
 from clients import engine_client, ckan_client
-from clients.ckan_client import get_user_details_for_email_or_404, extract_email_from_token, \
-    get_user_id_from_token_or_404, get_username_from_token_or_404
 
 workflow_bp = Blueprint('workflow', __name__)
 
@@ -16,7 +14,7 @@ workflow_bp = Blueprint('workflow', __name__)
 @workflow_bp.route('/workflows')
 @require_auth(None)
 def workflow_list():
-    _user_details = get_user_details_for_email_or_404(extract_email_from_token(current_token))
+    _user_details = ckan_client.get_user_details_for_email_or_404(ckan_client.extract_email_from_token(current_token))
     workflows = model.get_workflows(user_id=_user_details['id'])
     return jsonify({
         "workflows": [
@@ -50,8 +48,8 @@ def get_or_create_workflow(dataset_id, user_id, name=None):
 @workflow_bp.route('/workflows/<dataset_id>/state')
 @require_auth(None)
 def workflow_state(dataset_id):
-    ckan_cli = ckan_client.init_ckan(username_for_substitution=get_username_from_token_or_404(current_token))
-    user_id = get_user_id_from_token_or_404(current_token)
+    ckan_cli = ckan_client.init_ckan(username_for_substitution=ckan_client.get_username_from_token_or_404(current_token))
+    user_id = ckan_client.get_user_id_from_token_or_404(current_token)
     try:
         dataset = ckan_client.fetch_dataset_details(ckan_cli, dataset_id)
     except ckan_client.NotFound:
@@ -98,7 +96,7 @@ def workflow_state(dataset_id):
 @workflow_bp.route('/workflows/<dataset_id>/state', methods=['DELETE'])
 @require_auth(None)
 def workflow_delete(dataset_id):
-    user_id = get_user_id_from_token_or_404(current_token)
+    user_id = ckan_client.get_user_id_from_token_or_404(current_token)
     workflow = model.get_workflow(dataset_id, user_id)
     if not workflow:
         return error.error_response(404, f"Workflow for dataset {dataset_id} not found.")
