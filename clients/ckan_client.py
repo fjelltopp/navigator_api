@@ -2,7 +2,7 @@ import io
 import logging
 import os
 from urllib.parse import urljoin
-
+from flask import current_app
 import ckanapi
 import requests
 from werkzeug.exceptions import HTTPException
@@ -12,14 +12,11 @@ import logic
 WORKFLOW_RESOURCE_TYPE = 'navigator-workflow-state'
 log = logging.getLogger(__name__)
 
-API_KEY = 'working-api-key'
-CKAN_URL = 'http://working-adr-address'
-
 
 def get_user_details_for_email_or_404(email):
     from api import error
 
-    ckan = init_ckan(API_KEY)
+    ckan = init_ckan(current_app.config['CKAN_API'])
     ret = ckan.action.user_list(email=email)
     if not ret or len(ret) != 1:
         log.warning(f'Incorrect user email ({email}), found {len(ret)} candidates')
@@ -42,7 +39,7 @@ def extract_email_from_token(token):
 def get_ckan_client_with_username_for_substitution_from_token(token):
     username = get_username_from_token_or_404(token)
 
-    return init_ckan(API_KEY, username_for_substitution=username)
+    return init_ckan(current_app.config['CKAN_API'], username_for_substitution=username)
 
 
 def init_ckan(api=None, username_for_substitution=None):
@@ -50,8 +47,8 @@ def init_ckan(api=None, username_for_substitution=None):
     if username_for_substitution:
         session = requests.Session()
         session.headers.update({'CKAN-Substitute-User': username_for_substitution})
-    return ckanapi.RemoteCKAN(CKAN_URL,
-                              apikey=api or API_KEY, session=session)
+    return ckanapi.RemoteCKAN(current_app.config['CKAN_URL'],
+                              apikey=api or current_app.config['CKAN_API'], session=session)
 
 
 def authenticate_user(password, username):
