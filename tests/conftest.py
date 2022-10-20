@@ -2,8 +2,6 @@ import uuid
 from unittest.mock import patch
 
 import pytest
-import api.routes
-import api.auth0_integration
 import model
 from api.auth import User
 from app import create_app
@@ -44,4 +42,3 @@ def setup(test_app):
 def auth0_authorized():
     with patch('api.auth0_integration.ResourceProtector.acquire_token'):
         yield
-

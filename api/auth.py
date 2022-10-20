@@ -20,4 +20,3 @@ class SkipForInternalSessionInterface(SecureCookieSessionInterface):
         if _request.path == url_for('healtz.healthz'):
             return None
         return super(SkipForInternalSessionInterface, self).open_session(app, _request)
-

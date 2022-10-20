@@ -237,7 +237,12 @@ def test_workflow_task_list():
         }
     ]
     with patch('logic.is_task_completed', return_value=True):
-        result = logic.get_task_list_with_milestones("fake_dataset_id", tasks, milestones, ckan_client_test_double.valid_user_id)
+        result = logic.get_task_list_with_milestones(
+            "fake_dataset_id",
+            tasks,
+            milestones,
+            ckan_client_test_double.valid_user_id
+        )
     assert len(result) == 1
     actual_milestone = result[0]
     assert all(key in actual_milestone for key in ['id', 'title', 'progress', 'tasks'])
