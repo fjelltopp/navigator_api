@@ -1,6 +1,5 @@
 from authlib.integrations.flask_oauth2 import current_token
 from flask import Blueprint, jsonify
-from flask_login import current_user
 
 import logic
 import model
@@ -112,5 +111,6 @@ def _update_last_decision_task_id(decision_task_id, workflow):
 
 
 def is_task_skipped(dataset_id, task_id):
-    workflow = model.get_workflow(dataset_id, current_user.id)
+    user_id = ckan_client.get_user_id_from_token_or_404(current_token)
+    workflow = model.get_workflow(dataset_id, user_id)
     return task_id in workflow.skipped_tasks

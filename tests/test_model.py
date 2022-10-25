@@ -19,7 +19,8 @@ def test_workflow_skipping_task(workflow):
     assert workflow.skipped_tasks[-1] == 'task_last'
 
 
-def test_get_workflows_return_all_for_user(user):
-    factories.WorklowFactory.create_batch(10, user_id=user.id)
-    actual = get_workflows(user_id=user.id)
+def test_get_workflows_return_all_for_user():
+    user_id = "fake_user_id"
+    factories.WorklowFactory.create_batch(10, user_id=user_id)
+    actual = get_workflows(user_id=user_id)
     assert len(actual) == 10

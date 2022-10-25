@@ -1,9 +1,7 @@
-import uuid
 from unittest.mock import patch
 
 import pytest
 import model
-from api.auth import User
 from app import create_app
 from tests import factories
 
@@ -11,11 +9,6 @@ from tests import factories
 @pytest.fixture()
 def workflow():
     return factories.WorklowFactory.create()
-
-
-@pytest.fixture()
-def user():
-    return User(id=str(uuid.uuid4()))
 
 
 @pytest.fixture(scope="session")

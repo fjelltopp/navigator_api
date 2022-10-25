@@ -2,7 +2,6 @@ import os
 
 import sentry_sdk
 from flask import Flask, request
-from flask_session import Session
 from flask_cors import CORS
 import json_logging
 from sentry_sdk.integrations.flask import FlaskIntegration
@@ -10,7 +9,6 @@ from flask_babel import Babel
 
 import logic
 from model import db, migrate
-from api.auth import SkipForInternalSessionInterface
 from api.auth import auth0_service
 
 
@@ -34,8 +32,6 @@ def create_app(config_object=None):
     CORS(app)
     db.init_app(app)
     migrate.init_app(app, db)
-    Session(app)
-    app.session_interface = SkipForInternalSessionInterface()
     auth0_service.init_app(app)
     if app.config['JSON_LOGGING']:
         json_logging.init_flask(enable_json=True)
