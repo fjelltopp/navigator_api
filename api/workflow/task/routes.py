@@ -6,7 +6,7 @@ from flask import jsonify, Blueprint
 import logic
 import model
 from api import error
-from api.auth0_integration import require_auth
+from api.auth import auth0_service
 from api.workflow.routes import workflow_state
 from clients import engine_client, ckan_client
 
@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 
 
 @task_bp.route('/workflows/<dataset_id>/tasks/<task_id>')
-@require_auth(None)
+@auth0_service.require_auth(None)
 def workflow_task_details(dataset_id, task_id):
     user_id = ckan_client.get_user_id_from_token_or_404(current_token)
     workflow = model.get_workflow(dataset_id, user_id)
@@ -34,7 +34,7 @@ def workflow_task_details(dataset_id, task_id):
 
 
 @task_bp.route('/workflows/<dataset_id>/tasks/<task_id>/complete', methods=['GET'])
-@require_auth(None)
+@auth0_service.require_auth(None)
 def workflow_task_complete_get(dataset_id, task_id):
     user_id = ckan_client.get_user_id_from_token_or_404(current_token)
     is_completed = logic.is_task_completed(dataset_id, task_id, user_id)
@@ -45,7 +45,7 @@ def workflow_task_complete_get(dataset_id, task_id):
 
 
 @task_bp.route('/workflows/<dataset_id>/tasks/<task_id>/complete', methods=['POST'])
-@require_auth(None)
+@auth0_service.require_auth(None)
 def workflow_task_complete(dataset_id, task_id):
     ckan_cli = ckan_client.init_ckan(
         username_for_substitution=ckan_client.get_username_from_token_or_404(current_token)
@@ -61,7 +61,7 @@ def workflow_task_complete(dataset_id, task_id):
 
 
 @task_bp.route('/workflows/<dataset_id>/tasks/<task_id>/complete', methods=['DELETE'])
-@require_auth(None)
+@auth0_service.require_auth(None)
 def workflow_task_undo_complete(dataset_id, task_id):
     ckan_cli = ckan_client.init_ckan(
         username_for_substitution=ckan_client.get_username_from_token_or_404(current_token)
@@ -79,7 +79,7 @@ def workflow_task_undo_complete(dataset_id, task_id):
 
 
 @task_bp.route('/workflows/<dataset_id>/tasks/<task_id>/skip', methods=['POST'])
-@require_auth(None)
+@auth0_service.require_auth(None)
 def workflow_task_skip(dataset_id, task_id):
     user_id = ckan_client.get_user_id_from_token_or_404(current_token)
     workflow = model.get_workflow(dataset_id, user_id)
@@ -93,7 +93,7 @@ def workflow_task_skip(dataset_id, task_id):
 
 
 @task_bp.route('/workflows/<dataset_id>/tasks/<task_id>/skip', methods=['DELETE'])
-@require_auth(None)
+@auth0_service.require_auth(None)
 def workflow_task_skip_delete(dataset_id, task_id):
     user_id = ckan_client.get_user_id_from_token_or_404(current_token)
     workflow = model.get_workflow(dataset_id, user_id)
@@ -111,7 +111,7 @@ def workflow_task_skip_delete(dataset_id, task_id):
 
 
 @task_bp.route('/workflows/<dataset_id>/tasks', methods=['GET'])
-@require_auth(None)
+@auth0_service.require_auth(None)
 def workflow_task_list(dataset_id):
     ckan_cli = ckan_client.init_ckan(username_for_substitution=ckan_client.get_username_from_token_or_404(current_token))
     user_id = ckan_client.get_user_id_from_token_or_404(current_token)

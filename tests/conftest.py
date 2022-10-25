@@ -40,5 +40,5 @@ def setup(test_app):
 
 @pytest.fixture
 def auth0_authorized():
-    with patch('api.auth0_integration.ResourceProtector.acquire_token'):
+    with patch('api.auth.ResourceProtector.acquire_token'):
         yield

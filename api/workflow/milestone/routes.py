@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify
 import logic
 import model
 from api import error
-from api.auth0_integration import require_auth
+from api.auth import auth0_service
 from api.workflow.routes import workflow_state
 from clients import engine_client, ckan_client
 
@@ -12,7 +12,7 @@ milestone_bp = Blueprint('milestone', __name__,)
 
 
 @milestone_bp.route('/workflows/<dataset_id>/milestones/<milestone_id>', methods=['GET'])
-@require_auth(None)
+@auth0_service.require_auth(None)
 def workflow_milestone_details(dataset_id, milestone_id):
     ckan_cli = ckan_client.init_ckan(username_for_substitution=ckan_client.get_username_from_token_or_404(current_token))
     user_id = ckan_client.get_user_id_from_token_or_404(current_token)

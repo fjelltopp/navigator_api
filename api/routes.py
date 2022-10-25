@@ -3,7 +3,7 @@ import logging
 from authlib.integrations.flask_oauth2 import current_token
 from flask import Blueprint, jsonify
 
-from api.auth0_integration import require_auth
+from api.auth import auth0_service
 from clients import ckan_client
 
 api_bp = Blueprint('api', __name__)
@@ -16,7 +16,7 @@ def index():
 
 
 @api_bp.route('/user')
-@require_auth(None)
+@auth0_service.require_auth(None)
 def user_details():
     _user_details = ckan_client.get_user_details_for_email_or_404(
         ckan_client.extract_email_from_token(current_token)
@@ -30,7 +30,7 @@ def user_details():
 
 
 @api_bp.route('/datasets')
-@require_auth(None)
+@auth0_service.require_auth(None)
 def datasets():
     username = ckan_client.get_username_from_token_or_404(current_token)
     ckan_cli = ckan_client.init_ckan(username_for_substitution=username)

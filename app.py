@@ -11,6 +11,7 @@ from flask_babel import Babel
 import logic
 from model import db, migrate
 from api.auth import SkipForInternalSessionInterface
+from api.auth import auth0_service
 
 
 def create_app(config_object=None):
@@ -35,12 +36,10 @@ def create_app(config_object=None):
     migrate.init_app(app, db)
     Session(app)
     app.session_interface = SkipForInternalSessionInterface()
+    auth0_service.init_app(app)
     if app.config['JSON_LOGGING']:
         json_logging.init_flask(enable_json=True)
         json_logging.init_request_instrument(app)
-
-    from api.auth import auth_bp
-    app.register_blueprint(auth_bp)
 
     from api import api_bp
     app.register_blueprint(api_bp)
