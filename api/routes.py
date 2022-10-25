@@ -19,7 +19,7 @@ def index():
 @auth0_service.require_auth(None)
 def user_details():
     _user_details = ckan_client.get_user_details_for_email_or_404(
-        ckan_client.extract_email_from_token(current_token)
+        auth0_service.extract_email_from_token(current_token)
     )
     return jsonify(
         {

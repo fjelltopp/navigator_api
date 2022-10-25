@@ -8,6 +8,7 @@ import requests
 from werkzeug.exceptions import HTTPException
 
 import logic
+from api.auth import auth0_service
 
 WORKFLOW_RESOURCE_TYPE = 'navigator-workflow-state'
 log = logging.getLogger(__name__)
@@ -25,15 +26,11 @@ def get_user_details_for_email_or_404(email):
 
 
 def get_user_id_from_token_or_404(token):
-    return get_user_details_for_email_or_404(extract_email_from_token(token))['id']
+    return get_user_details_for_email_or_404(auth0_service.extract_email_from_token(token))['id']
 
 
 def get_username_from_token_or_404(token):
-    return get_user_details_for_email_or_404(extract_email_from_token(token))['name']
-
-
-def extract_email_from_token(token):
-    return token['http://navigator.minikube/email']
+    return get_user_details_for_email_or_404(auth0_service.extract_email_from_token(token))['name']
 
 
 def get_ckan_client_with_username_for_substitution_from_token(token):

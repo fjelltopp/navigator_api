@@ -22,7 +22,7 @@ class Config(object):
     DEFAULT_LANGUAGE = os.getenv('NAVIGATOR_DEFAULT_LANGUAGE', 'en')
     AUTH0_DOMAIN = os.getenv('AUTH0_DOMAIN', 'hivtools.eu.auth0.com')
     AUTH0_AUDIENCE = os.getenv('AUTH0_AUDIENCE', 'http://navigator.minikube')
-    AUTH0_EMAIL_NAMESPACE = os.getenv('AUTH0_EMAIL_NAMESPACE', 'http://navigator.minikube/')
+    AUTH0_EMAIL_NAMESPACE = os.getenv('AUTH0_EMAIL_NAMESPACE', 'http://navigator.minikube/email')
     CKAN_API = os.getenv('CKAN_API_SECRET', '6011357f-a7f8-4367-a47d-8c2ab8059520')
 
 

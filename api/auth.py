@@ -15,14 +15,23 @@ class Auth0Service:
     def __init__(self):
         self.issuer_url = None
         self.audience = None
+        self.email_namespece = None
         self.require_auth = ResourceProtector()
 
     def init_app(self, app):
+        self.issuer_url = app.config['AUTH0_DOMAIN']
+        self.audience = app.config['AUTH0_AUDIENCE']
+        self.email_namespece = app.config['AUTH0_EMAIL_NAMESPACE']
+
         validator = Auth0JWTBearerTokenValidator(
-            app.config['AUTH0_DOMAIN'],
-            app.config['AUTH0_AUDIENCE']
+            self.issuer_url,
+            self.audience
         )
         self.require_auth.register_token_validator(validator)
+
+    def extract_email_from_token(self, token):
+        return token[self.email_namespece]
+
 
 class Auth0JWTBearerTokenValidator(JWTBearerTokenValidator):
     """Auth0 Validator to be used in Auth0Service"""

@@ -1,6 +1,7 @@
 from authlib.integrations.flask_oauth2 import current_token
 from flask import Blueprint, jsonify
 
+import api.auth
 import logic
 import model
 from api import error
@@ -13,7 +14,7 @@ workflow_bp = Blueprint('workflow', __name__)
 @workflow_bp.route('/workflows')
 @auth0_service.require_auth(None)
 def workflow_list():
-    _user_details = ckan_client.get_user_details_for_email_or_404(ckan_client.extract_email_from_token(current_token))
+    _user_details = ckan_client.get_user_details_for_email_or_404(auth0_service.extract_email_from_token(current_token))
     workflows = model.get_workflows(user_id=_user_details['id'])
     return jsonify({
         "workflows": [
