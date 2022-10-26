@@ -61,7 +61,7 @@ def is_task_completed(dataset_id, task_id):
     if task_status['terminus']:
         return True
     if manual:
-        ckan_username = ckan_client.get_username_from_email_or_404(current_user_email)
+        ckan_username = ckan_client.get_username_from_email(current_user_email)
         ckan_cli = ckan_client.init_ckan(
             username_for_substitution=ckan_username
         )

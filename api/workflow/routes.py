@@ -46,7 +46,7 @@ def get_or_create_workflow(dataset_id, user_id, name=None):
 @workflow_bp.route('/workflows/<dataset_id>/state')
 @auth0_service.require_auth(None)
 def workflow_state(dataset_id):
-    ckan_username = ckan_client.get_username_from_email_or_404(auth0_service.current_user_email())
+    ckan_username = ckan_client.get_username_from_email(auth0_service.current_user_email())
     ckan_cli = ckan_client.init_ckan(username_for_substitution=ckan_username)
     user_id = auth0_service.current_user_email()
     try:

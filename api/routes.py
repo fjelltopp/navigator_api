@@ -2,6 +2,7 @@ import logging
 
 from flask import Blueprint, jsonify
 
+from api import error
 from api.auth import auth0_service
 from clients import ckan_client
 
@@ -17,21 +18,24 @@ def index():
 @api_bp.route('/user')
 @auth0_service.require_auth(None)
 def user_details():
-    _user_details = ckan_client.get_user_details_for_email_or_404(
-        auth0_service.current_user_email()
-    )
-    return jsonify(
-        {
-            "fullname": _user_details["fullname"],
-            "email": _user_details["email"]
-        }
-    )
+    try:
+        _user_details = ckan_client.get_user_details_for_email(
+            auth0_service.current_user_email()
+        )
+        return jsonify(
+            {
+                "fullname": _user_details["fullname"],
+                "email": _user_details["email"]
+            }
+        )
+    except ckan_client.NotFound:
+        return error.not_found(f"Couldn't find user details in ADR. Does the user have ADR account?")
 
 
 @api_bp.route('/datasets')
 @auth0_service.require_auth(None)
 def datasets():
-    ckan_username = ckan_client.get_username_from_email_or_404(auth0_service.current_user_email())
+    ckan_username = ckan_client.get_username_from_email(auth0_service.current_user_email())
     ckan_cli = ckan_client.init_ckan(username_for_substitution=ckan_username)
     dataset_list = ckan_client.fetch_country_estimates_datasets(ckan_cli)
     orgs = set(ckan_client.fetch_user_organization_ids(ckan_cli, capacity='create_dataset'))

@@ -5,7 +5,6 @@ from urllib.parse import urljoin
 from flask import current_app
 import ckanapi
 import requests
-from werkzeug.exceptions import HTTPException
 
 import logic
 
@@ -13,28 +12,26 @@ WORKFLOW_RESOURCE_TYPE = 'navigator-workflow-state'
 log = logging.getLogger(__name__)
 
 
-def get_user_details_for_email_or_404(email):
-    from api import error
-
-    ckan = init_ckan(apikey=current_app.config['CKAN_API'])
+def get_user_details_for_email(email):
+    ckan = init_ckan()
     ret = ckan.action.user_list(email=email)
     if not ret or len(ret) != 1:
-        log.warning(f'Incorrect user email ({email}), found {len(ret)} candidates')
-        raise HTTPException(response=error.not_found("User not found"))
+        log.error(f'Incorrect user email ({email}), found {len(ret)} candidates')
+        raise NotFound(f"User with email {email} not found in CKAN")
     return ret[0]
 
 
-def get_username_from_email_or_404(email):
-    return get_user_details_for_email_or_404(email)['name']
+def get_username_from_email(email):
+    return get_user_details_for_email(email)['name']
 
 
 def get_ckan_client_with_username_for_substitution_from_email(email):
-    username = get_username_from_email_or_404(email)
+    username = get_username_from_email(email)
     return init_ckan(apikey=current_app.config['CKAN_API'], username_for_substitution=username)
 
 
 def init_ckan(apikey=None, username_for_substitution=None):
-    apikey = apikey or current_app.config['CKAN_API']
+    apikey = apikey or current_app.config['CKAN_APIKEY']
     session = requests.Session()
     if username_for_substitution:
         session.headers.update({'CKAN-Substitute-User': username_for_substitution})

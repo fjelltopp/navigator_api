@@ -26,11 +26,11 @@ def authenticate_user(password, username):
     return {}
 
 
-def get_user_details_for_email_or_404(email):
+def get_user_details_for_email(email):
     return USER_DETAILS
 
 
-def get_username_from_email_or_404(email):
+def get_username_from_email(email):
     return USER_DETAILS['name']
 
 
