@@ -35,7 +35,6 @@ def workflow_task_details(dataset_id, task_id):
 @task_bp.route('/workflows/<dataset_id>/tasks/<task_id>/complete', methods=['GET'])
 @auth0_service.require_auth(None)
 def workflow_task_complete_get(dataset_id, task_id):
-    user_id = auth0_service.current_user_email()
     is_completed = logic.is_task_completed(dataset_id, task_id)
     return jsonify({
         "id": task_id,
