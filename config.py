@@ -1,7 +1,6 @@
 import os
 
 import logging
-from redis import Redis
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 

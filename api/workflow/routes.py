@@ -13,7 +13,6 @@ workflow_bp = Blueprint('workflow', __name__)
 @auth0_service.require_auth(None)
 def workflow_list():
     user_id = auth0_service.current_user_email()
-    _user_details = ckan_client.get_user_details_for_email_or_404(user_id)
     workflows = model.get_workflows(user_id=user_id)
     return jsonify({
         "workflows": [
