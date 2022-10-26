@@ -28,7 +28,7 @@ def workflow_task_details(dataset_id, task_id):
         return error.not_found(f"Failed to get task details {task_id}")
 
     task_status = workflow.task_statuses_map.get(task_id, {})
-    task = logic.compose_task_details(dataset_id, task_id, action['content'], task_status, user_id)
+    task = logic.compose_task_details(dataset_id, task_id, action['content'], task_status)
     return jsonify(task)
 
 
@@ -36,7 +36,7 @@ def workflow_task_details(dataset_id, task_id):
 @auth0_service.require_auth(None)
 def workflow_task_complete_get(dataset_id, task_id):
     user_id = auth0_service.current_user_email()
-    is_completed = logic.is_task_completed(dataset_id, task_id, user_id)
+    is_completed = logic.is_task_completed(dataset_id, task_id)
     return jsonify({
         "id": task_id,
         "completed": is_completed
@@ -124,7 +124,7 @@ def workflow_task_list(dataset_id):
         return error.error_response(500, f"Engine error: {err}")
 
     task_list_with_milestones = logic.get_task_list_with_milestones(dataset_id, task_list['actionList'],
-                                                                    task_list['milestones'], user_id)
+                                                                    task_list['milestones'])
 
     return jsonify({
         "progress": task_list['progress'],

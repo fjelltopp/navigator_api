@@ -92,16 +92,17 @@ def test_remove_tasks_from_skipped_list(workflow, skipped_tasks, skipped_tasks_t
                              "automated skipped task is not done",
                          ]
                          )
+@pytest.mark.usefixtures('auth0_authorized')
 def test_is_task_completed_for_automated_tasks(task_id, skipped_tasks, expected):
     automated_task_statuses = {
         "task1": {'manualConfirmationRequired': False, 'terminus': False},
         "task2": {'manualConfirmationRequired': False, 'terminus': False},
         "task3": {'manualConfirmationRequired': False, 'terminus': False}
     }
-    workflow = factories.WorklowFactory.create(user_id=ckan_client_test_double.valid_user_id)
+    workflow = factories.WorklowFactory.create(user_id=ckan_client_test_double.valid_user_email)
     workflow.skipped_tasks = skipped_tasks
     workflow.task_statuses_map = automated_task_statuses
-    assert logic.is_task_completed(workflow.dataset_id, task_id, ckan_client_test_double.valid_user_id) == expected
+    assert logic.is_task_completed(workflow.dataset_id, task_id) == expected
 
 
 @pytest.mark.parametrize("task_id,expected",
@@ -116,22 +117,24 @@ def test_is_task_completed_for_automated_tasks(task_id, skipped_tasks, expected)
                              "current task marked as completed"
                          ]
                          )
+@pytest.mark.usefixtures('auth0_authorized')
 def test_is_task_completed_for_manual_tasks(task_id, expected):
     automated_task_statuses = {
         "task1": {'manualConfirmationRequired': True, "terminus": False},
         "task2": {'manualConfirmationRequired': True, "terminus": False},
         "task3": {'manualConfirmationRequired': True, "terminus": False}
     }
-    workflow = factories.WorklowFactory.create(user_id=ckan_client_test_double.valid_user_id)
+    workflow = factories.WorklowFactory.create(user_id=ckan_client_test_double.valid_user_email)
     workflow.task_statuses_map = automated_task_statuses
     with patch('logic.ckan_client', wraps=ckan_client_test_double):
-        assert logic.is_task_completed(workflow.dataset_id, task_id, ckan_client_test_double.valid_user_id) == expected
+        assert logic.is_task_completed(workflow.dataset_id, task_id) == expected
 
 
+@pytest.mark.usefixtures('auth0_authorized')
 def test_is_task_completed_returns_false_for_unknown_task():
-    workflow = factories.WorklowFactory.create(user_id=ckan_client_test_double.valid_user_id)
+    workflow = factories.WorklowFactory.create(user_id=ckan_client_test_double.valid_user_email)
     workflow.task_statuses_map = {"task1": {}, "task2": {}}
-    assert logic.is_task_completed(workflow.dataset_id, "unknown_task_id", ckan_client_test_double.valid_user_id) is False
+    assert logic.is_task_completed(workflow.dataset_id, "unknown_task_id") is False
 
 
 @pytest.mark.parametrize("task_id", ["task1", "task2"],
@@ -140,14 +143,15 @@ def test_is_task_completed_returns_false_for_unknown_task():
                              "for automated terminus task"
                          ]
                          )
+@pytest.mark.usefixtures('auth0_authorized')
 def test_is_task_completed_return_true_for_terminus_task(task_id):
-    workflow = factories.WorklowFactory.create(user_id=ckan_client_test_double.valid_user_id)
+    workflow = factories.WorklowFactory.create(user_id=ckan_client_test_double.valid_user_email)
     workflow.task_statuses_map = {
         "task1": {"manualConfirmationRequired": True, "terminus": True},
         "task2": {"manualConfirmationRequired": False, "terminus": True}
     }
     with patch('logic.ckan_client', wraps=ckan_client_test_double):
-        assert logic.is_task_completed(workflow.dataset_id, task_id, ckan_client_test_double.valid_user_id)
+        assert logic.is_task_completed(workflow.dataset_id, task_id)
 
 
 def test_complete_task_updates_workflow_state(empty_workflow_state):
@@ -235,12 +239,7 @@ def test_workflow_task_list():
         }
     ]
     with patch('logic.is_task_completed', return_value=True):
-        result = logic.get_task_list_with_milestones(
-            "fake_dataset_id",
-            tasks,
-            milestones,
-            ckan_client_test_double.valid_user_id
-        )
+        result = logic.get_task_list_with_milestones("fake_dataset_id", tasks, milestones)
     assert len(result) == 1
     actual_milestone = result[0]
     assert all(key in actual_milestone for key in ['id', 'title', 'progress', 'tasks'])

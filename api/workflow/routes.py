@@ -80,7 +80,7 @@ def workflow_state(dataset_id):
         logic.remove_tasks_from_skipped_list(workflow, skipped_tasks_to_remove)
 
     current_task = logic.compose_task_details(dataset_id, decision_task_id, task_details,
-                                              task_statuses_map[decision_task_id], user_id)
+                                              task_statuses_map[decision_task_id])
     return jsonify({
         "id": f"{workflow.id}",
         "progress": task_progress["progress"],

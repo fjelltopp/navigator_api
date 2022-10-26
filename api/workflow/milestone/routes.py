@@ -31,5 +31,5 @@ def workflow_milestone_details(dataset_id, milestone_id):
             break
     else:
         return error.not_found(f"Milestone details for {milestone_id} not found")
-    milestone['tasks'] = logic.get_milestone_task_list(dataset_id, milestone_id, task_list['actionList'], user_id)
+    milestone['tasks'] = logic.get_milestone_task_list(dataset_id, milestone_id, task_list['actionList'])
     return jsonify(milestone)

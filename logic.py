@@ -10,6 +10,7 @@ from threading import Lock
 from flask_babel import _
 
 import model
+from api.auth import auth0_service
 from clients import ckan_client
 
 log = logging.getLogger(__name__)
@@ -48,8 +49,9 @@ def workflow_state_message(workflow, task_breadcrumbs, decision_action_id, skipp
     return None
 
 
-def is_task_completed(dataset_id, task_id, user_id):
-    workflow = model.get_workflow(dataset_id, user_id)
+def is_task_completed(dataset_id, task_id):
+    current_user_email = auth0_service.current_user_email()
+    workflow = model.get_workflow(dataset_id, user_id=current_user_email)
     task_statuses_map = workflow.task_statuses_map
     task_status = task_statuses_map.get(task_id)
     if not task_status:
@@ -59,7 +61,7 @@ def is_task_completed(dataset_id, task_id, user_id):
     if task_status['terminus']:
         return True
     if manual:
-        ckan_username = ckan_client.get_username_from_email_or_404(user_id)
+        ckan_username = ckan_client.get_username_from_email_or_404(current_user_email)
         ckan_cli = ckan_client.init_ckan(
             username_for_substitution=ckan_username
         )
@@ -84,12 +86,12 @@ def remove_tasks_from_skipped_list(workflow, task_list):
     return None
 
 
-def compose_task_details(dataset_id, task_id, task_details, task_status, user_id):
+def compose_task_details(dataset_id, task_id, task_details, task_status):
     current_task = {
         "id": task_id,
         "skipped": task_status.get("skipped", False),
         "reached": task_status.get("reached", False),
-        "completed": is_task_completed(dataset_id, task_id, user_id),
+        "completed": is_task_completed(dataset_id, task_id),
         "manual": task_status.get("manualConfirmationRequired"),
         "milestoneID": task_status.get("milestoneID"),
         "details": task_details
@@ -97,14 +99,14 @@ def compose_task_details(dataset_id, task_id, task_details, task_status, user_id
     return current_task
 
 
-def get_task_list_with_milestones(dataset_id, tasks, milestones, user_id):
+def get_task_list_with_milestones(dataset_id, tasks, milestones):
     milestone_map = {milestone['id']: milestone for milestone in milestones}
     task_list_with_milestones = []
     last_milestone_id = None
     for task in tasks:
         task['manual'] = task['manualConfirmationRequired']
         del task['manualConfirmationRequired']
-        task['completed'] = is_task_completed(dataset_id=dataset_id, task_id=task['id'], user_id=user_id)
+        task['completed'] = is_task_completed(dataset_id=dataset_id, task_id=task['id'])
 
         milestone_id = task['milestoneID']
         if len(task_list_with_milestones) > 0 and milestone_id == last_milestone_id:
@@ -122,14 +124,14 @@ def get_task_list_with_milestones(dataset_id, tasks, milestones, user_id):
     return task_list_with_milestones
 
 
-def get_milestone_task_list(dataset_id, milestone_id, tasks, user_id):
+def get_milestone_task_list(dataset_id, milestone_id, tasks):
     result = []
     for task in tasks:
         if task['milestoneID'] == milestone_id:
             del task['milestoneID']
             task['manual'] = task['manualConfirmationRequired']
             del task['manualConfirmationRequired']
-            task['completed'] = is_task_completed(dataset_id=dataset_id, task_id=task['id'], user_id=user_id)
+            task['completed'] = is_task_completed(dataset_id=dataset_id, task_id=task['id'])
             result.append(task)
     return result
 
