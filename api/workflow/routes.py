@@ -1,7 +1,5 @@
-from authlib.integrations.flask_oauth2 import current_token
 from flask import Blueprint, jsonify
 
-import api.auth
 import logic
 import model
 from api import error
@@ -14,8 +12,9 @@ workflow_bp = Blueprint('workflow', __name__)
 @workflow_bp.route('/workflows')
 @auth0_service.require_auth(None)
 def workflow_list():
-    _user_details = ckan_client.get_user_details_for_email_or_404(auth0_service.extract_email_from_token(current_token))
-    workflows = model.get_workflows(user_id=_user_details['id'])
+    user_id = auth0_service.current_user_email()
+    _user_details = ckan_client.get_user_details_for_email_or_404(user_id)
+    workflows = model.get_workflows(user_id=user_id)
     return jsonify({
         "workflows": [
             {
@@ -48,8 +47,9 @@ def get_or_create_workflow(dataset_id, user_id, name=None):
 @workflow_bp.route('/workflows/<dataset_id>/state')
 @auth0_service.require_auth(None)
 def workflow_state(dataset_id):
-    ckan_cli = ckan_client.init_ckan(username_for_substitution=ckan_client.get_username_from_token_or_404(current_token))
-    user_id = ckan_client.get_user_id_from_token_or_404(current_token)
+    ckan_username = ckan_client.get_username_from_email_or_404(auth0_service.current_user_email())
+    ckan_cli = ckan_client.init_ckan(username_for_substitution=ckan_username)
+    user_id = auth0_service.current_user_email()
     try:
         dataset = ckan_client.fetch_dataset_details(ckan_cli, dataset_id)
     except ckan_client.NotFound:
@@ -96,7 +96,7 @@ def workflow_state(dataset_id):
 @workflow_bp.route('/workflows/<dataset_id>/state', methods=['DELETE'])
 @auth0_service.require_auth(None)
 def workflow_delete(dataset_id):
-    user_id = ckan_client.get_user_id_from_token_or_404(current_token)
+    user_id = auth0_service.current_user_email()
     workflow = model.get_workflow(dataset_id, user_id)
     if not workflow:
         return error.error_response(404, f"Workflow for dataset {dataset_id} not found.")
@@ -112,6 +112,6 @@ def _update_last_decision_task_id(decision_task_id, workflow):
 
 
 def is_task_skipped(dataset_id, task_id):
-    user_id = ckan_client.get_user_id_from_token_or_404(current_token)
+    user_id = auth0_service.current_user_email()
     workflow = model.get_workflow(dataset_id, user_id)
     return task_id in workflow.skipped_tasks

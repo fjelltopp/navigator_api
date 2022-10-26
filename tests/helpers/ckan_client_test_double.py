@@ -30,16 +30,8 @@ def get_user_details_for_email_or_404(email):
     return USER_DETAILS
 
 
-def get_user_id_from_token_or_404(token):
-    return USER_DETAILS['id']
-
-
-def get_username_from_token_or_404(token):
+def get_username_from_email_or_404(email):
     return USER_DETAILS['name']
-
-
-def extract_email_from_token(token):
-    return valid_user_email
 
 
 def fetch_country_estimates_datasets(ckan_cli):

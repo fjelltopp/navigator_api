@@ -4,7 +4,6 @@ import logging
 from datetime import datetime, timezone
 
 import flask
-from authlib.integrations.flask_oauth2 import current_token
 from cachetools import cached, Cache
 from cachetools.keys import hashkey
 from threading import Lock
@@ -60,8 +59,9 @@ def is_task_completed(dataset_id, task_id, user_id):
     if task_status['terminus']:
         return True
     if manual:
+        ckan_username = ckan_client.get_username_from_email_or_404(user_id)
         ckan_cli = ckan_client.init_ckan(
-            username_for_substitution=ckan_client.get_username_from_token_or_404(current_token)
+            username_for_substitution=ckan_username
         )
         wf_state = get_workflow_state(ckan_cli, dataset_id)
         if not wf_state:

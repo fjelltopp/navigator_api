@@ -125,8 +125,6 @@ def test_is_task_completed_for_manual_tasks(task_id, expected):
     workflow = factories.WorklowFactory.create(user_id=ckan_client_test_double.valid_user_id)
     workflow.task_statuses_map = automated_task_statuses
     with patch('logic.ckan_client', wraps=ckan_client_test_double):
-        logic.get_username_from_token_or_404 = MagicMock
-        logic.get_username_from_token_or_404.return_value = ckan_client_test_double.valid_username
         assert logic.is_task_completed(workflow.dataset_id, task_id, ckan_client_test_double.valid_user_id) == expected
 
 

@@ -1,4 +1,3 @@
-from authlib.integrations.flask_oauth2 import current_token
 from flask import Blueprint, jsonify
 
 import logic
@@ -14,8 +13,9 @@ milestone_bp = Blueprint('milestone', __name__,)
 @milestone_bp.route('/workflows/<dataset_id>/milestones/<milestone_id>', methods=['GET'])
 @auth0_service.require_auth(None)
 def workflow_milestone_details(dataset_id, milestone_id):
-    ckan_cli = ckan_client.init_ckan(username_for_substitution=ckan_client.get_username_from_token_or_404(current_token))
-    user_id = ckan_client.get_user_id_from_token_or_404(current_token)
+    user_id = auth0_service.current_user_email()
+    ckan_username = ckan_client.get_username_from_email_or_404(user_id)
+    ckan_cli = ckan_client.init_ckan(username_for_substitution=ckan_username)
     workflow = model.get_workflow(dataset_id, user_id)
     if not workflow:
         workflow_state(dataset_id)

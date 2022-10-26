@@ -8,7 +8,6 @@ import requests
 from werkzeug.exceptions import HTTPException
 
 import logic
-from api.auth import auth0_service
 
 WORKFLOW_RESOURCE_TYPE = 'navigator-workflow-state'
 log = logging.getLogger(__name__)
@@ -25,17 +24,12 @@ def get_user_details_for_email_or_404(email):
     return ret[0]
 
 
-def get_user_id_from_token_or_404(token):
-    return get_user_details_for_email_or_404(auth0_service.extract_email_from_token(token))['id']
+def get_username_from_email_or_404(email):
+    return get_user_details_for_email_or_404(email)['name']
 
 
-def get_username_from_token_or_404(token):
-    return get_user_details_for_email_or_404(auth0_service.extract_email_from_token(token))['name']
-
-
-def get_ckan_client_with_username_for_substitution_from_token(token):
-    username = get_username_from_token_or_404(token)
-
+def get_ckan_client_with_username_for_substitution_from_email(email):
+    username = get_username_from_email_or_404(email)
     return init_ckan(current_app.config['CKAN_API'], username_for_substitution=username)
 
 

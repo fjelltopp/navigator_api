@@ -30,6 +30,7 @@ class Testing(Config):
     TESTING = True
     DEBUG = False
 
+    AUTH0_EMAIL_NAMESPACE = 'http://navigator.minikube/email'
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'test.db')
     LOGGING_LEVEL = logging.WARNING
 

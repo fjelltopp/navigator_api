@@ -2,7 +2,7 @@ import logging
 import json
 from urllib.request import urlopen
 
-from authlib.integrations.flask_oauth2 import ResourceProtector
+from authlib.integrations.flask_oauth2 import ResourceProtector, current_token
 from authlib.jose import JsonWebKey
 from authlib.oauth2.rfc7523 import JWTBearerTokenValidator
 
@@ -29,8 +29,8 @@ class Auth0Service:
         )
         self.require_auth.register_token_validator(validator)
 
-    def extract_email_from_token(self, token):
-        return token[self.email_namespece]
+    def current_user_email(self):
+        return current_token[self.email_namespece]
 
 
 class Auth0JWTBearerTokenValidator(JWTBearerTokenValidator):

@@ -67,7 +67,7 @@ class TestUserDataAvailable:
 
     @patch('api.workflow.routes.ckan_client', wraps=ckan_client_test_double)
     def test_workflow_list_returns_all_item_details(self, ckan_client_mock, test_client):
-        factories.WorklowFactory.create_batch(10, user_id=ckan_client_test_double.valid_user_id)
+        factories.WorklowFactory.create_batch(10, user_id=ckan_client_test_double.valid_user_email)
         r = test_client.get('/workflows')
         assert r.status_code == 200
         workflows = r.json['workflows']

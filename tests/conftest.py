@@ -3,6 +3,7 @@ from unittest.mock import patch
 import pytest
 import model
 from app import create_app
+from helpers import ckan_client_test_double
 from tests import factories
 
 
@@ -32,6 +33,10 @@ def setup(test_app):
 
 
 @pytest.fixture
-def auth0_authorized():
+def auth0_authorized(test_app):
+    current_token_mock = {
+        test_app.config['AUTH0_EMAIL_NAMESPACE']: ckan_client_test_double.valid_user_email
+    }
     with patch('api.auth.ResourceProtector.acquire_token'):
-        yield
+        with patch('api.auth.current_token', new=current_token_mock):
+            yield
