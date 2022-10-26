@@ -3,7 +3,7 @@ from unittest.mock import patch
 import pytest
 import model
 from app import create_app
-from helpers import ckan_client_test_double
+from tests.helpers import ckan_client_test_double
 from tests import factories
 
 
