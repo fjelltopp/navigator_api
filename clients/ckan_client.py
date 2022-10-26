@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 def get_user_details_for_email_or_404(email):
     from api import error
 
-    ckan = init_ckan(current_app.config['CKAN_API'])
+    ckan = init_ckan(apikey=current_app.config['CKAN_API'])
     ret = ckan.action.user_list(email=email)
     if not ret or len(ret) != 1:
         log.warning(f'Incorrect user email ({email}), found {len(ret)} candidates')
@@ -30,25 +30,15 @@ def get_username_from_email_or_404(email):
 
 def get_ckan_client_with_username_for_substitution_from_email(email):
     username = get_username_from_email_or_404(email)
-    return init_ckan(current_app.config['CKAN_API'], username_for_substitution=username)
+    return init_ckan(apikey=current_app.config['CKAN_API'], username_for_substitution=username)
 
 
-def init_ckan(api=None, username_for_substitution=None):
-    session = None
+def init_ckan(apikey=None, username_for_substitution=None):
+    apikey = apikey or current_app.config['CKAN_API']
+    session = requests.Session()
     if username_for_substitution:
-        session = requests.Session()
         session.headers.update({'CKAN-Substitute-User': username_for_substitution})
-    return ckanapi.RemoteCKAN(current_app.config['CKAN_URL'],
-                              apikey=api or current_app.config['CKAN_API'], session=session)
-
-
-def authenticate_user(password, username):
-    ckan = init_ckan()
-    try:
-        ckan_user = ckan.action.user_login(id=username, password=password)
-    except ckanapi.errors.CKANAPIError as err:
-        raise CkanError(str(err))
-    return ckan_user
+    return ckanapi.RemoteCKAN(current_app.config['CKAN_URL'], apikey=apikey, session=session)
 
 
 def fetch_country_estimates_datasets(ckan_cli, include_private=True):
