@@ -1,11 +1,11 @@
 import logging
 
 from flask import jsonify, Blueprint
-from flask_login import login_required, current_user
 
 import logic
 import model
 from api import error
+from api.auth import auth0_service
 from api.workflow.routes import workflow_state
 from clients import engine_client, ckan_client
 
@@ -15,9 +15,10 @@ log = logging.getLogger(__name__)
 
 
 @task_bp.route('/workflows/<dataset_id>/tasks/<task_id>')
-@login_required
+@auth0_service.require_auth(None)
 def workflow_task_details(dataset_id, task_id):
-    workflow = model.get_workflow(dataset_id, current_user.id)
+    user_id = auth0_service.current_user_email()
+    workflow = model.get_workflow(dataset_id, user_id)
     if not workflow:
         return error.not_found(f"Couldn't get workflow for dataset {dataset_id}")
     try:
@@ -32,7 +33,7 @@ def workflow_task_details(dataset_id, task_id):
 
 
 @task_bp.route('/workflows/<dataset_id>/tasks/<task_id>/complete', methods=['GET'])
-@login_required
+@auth0_service.require_auth(None)
 def workflow_task_complete_get(dataset_id, task_id):
     is_completed = logic.is_task_completed(dataset_id, task_id)
     return jsonify({
@@ -42,9 +43,10 @@ def workflow_task_complete_get(dataset_id, task_id):
 
 
 @task_bp.route('/workflows/<dataset_id>/tasks/<task_id>/complete', methods=['POST'])
-@login_required
+@auth0_service.require_auth(None)
 def workflow_task_complete(dataset_id, task_id):
-    ckan_cli = logic.get_ckan_client_from_session()
+    ckan_username = ckan_client.get_username_from_email(auth0_service.current_user_email())
+    ckan_cli = ckan_client.init_ckan(username_for_substitution=ckan_username)
     workflow_state = logic.get_workflow_state(ckan_cli, dataset_id)
     new_state = logic.complete_task(workflow_state, task_id)
     try:
@@ -56,9 +58,10 @@ def workflow_task_complete(dataset_id, task_id):
 
 
 @task_bp.route('/workflows/<dataset_id>/tasks/<task_id>/complete', methods=['DELETE'])
-@login_required
+@auth0_service.require_auth(None)
 def workflow_task_undo_complete(dataset_id, task_id):
-    ckan_cli = logic.get_ckan_client_from_session()
+    ckan_username = ckan_client.get_username_from_email(auth0_service.current_user_email())
+    ckan_cli = ckan_client.init_ckan(username_for_substitution=ckan_username)
     wf_state = logic.get_workflow_state(ckan_cli, dataset_id)
     try:
         new_state = logic.uncomplete_task(wf_state, task_id)
@@ -72,9 +75,10 @@ def workflow_task_undo_complete(dataset_id, task_id):
 
 
 @task_bp.route('/workflows/<dataset_id>/tasks/<task_id>/skip', methods=['POST'])
-@login_required
+@auth0_service.require_auth(None)
 def workflow_task_skip(dataset_id, task_id):
-    workflow = model.get_workflow(dataset_id, current_user.id)
+    user_id = auth0_service.current_user_email()
+    workflow = model.get_workflow(dataset_id, user_id)
     if not workflow:
         return error.not_found(f"Workflow for dataset {dataset_id} not found.")
     if task_id not in workflow.skipped_tasks:
@@ -85,9 +89,10 @@ def workflow_task_skip(dataset_id, task_id):
 
 
 @task_bp.route('/workflows/<dataset_id>/tasks/<task_id>/skip', methods=['DELETE'])
-@login_required
+@auth0_service.require_auth(None)
 def workflow_task_skip_delete(dataset_id, task_id):
-    workflow = model.get_workflow(dataset_id, current_user.id)
+    user_id = auth0_service.current_user_email()
+    workflow = model.get_workflow(dataset_id, user_id)
     if not workflow:
         return error.not_found(f"Workflow for dataset {dataset_id} not found.")
     if task_id not in workflow.skipped_tasks:
@@ -102,13 +107,16 @@ def workflow_task_skip_delete(dataset_id, task_id):
 
 
 @task_bp.route('/workflows/<dataset_id>/tasks', methods=['GET'])
-@login_required
+@auth0_service.require_auth(None)
 def workflow_task_list(dataset_id):
-    ckan_cli = logic.get_ckan_client_from_session()
-    workflow = model.get_workflow(dataset_id, current_user.id)
+    user_id = auth0_service.current_user_email()
+    ckan_username = ckan_client.get_username_from_email(user_id)
+    ckan_cli = ckan_client.init_ckan(username_for_substitution=ckan_username)
+
+    workflow = model.get_workflow(dataset_id, user_id)
     if not workflow:
         workflow_state(dataset_id)
-        workflow = model.get_workflow(dataset_id, current_user.id)
+        workflow = model.get_workflow(dataset_id, user_id)
     try:
         task_list = engine_client.get_workflow_tasks(ckan_cli, dataset_id, skip_actions=workflow.skipped_tasks)
     except engine_client.EngineError as err:

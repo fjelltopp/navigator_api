@@ -1,18 +1,19 @@
 from flask import Blueprint, jsonify
-from flask_login import login_required, current_user
 
 import logic
 import model
 from api import error
+from api.auth import auth0_service
 from clients import engine_client, ckan_client
 
 workflow_bp = Blueprint('workflow', __name__)
 
 
 @workflow_bp.route('/workflows')
-@login_required
+@auth0_service.require_auth(None)
 def workflow_list():
-    workflows = model.get_workflows(user_id=current_user.id)
+    user_id = auth0_service.current_user_email()
+    workflows = model.get_workflows(user_id=user_id)
     return jsonify({
         "workflows": [
             {
@@ -43,14 +44,16 @@ def get_or_create_workflow(dataset_id, user_id, name=None):
 
 
 @workflow_bp.route('/workflows/<dataset_id>/state')
-@login_required
+@auth0_service.require_auth(None)
 def workflow_state(dataset_id):
-    ckan_cli = logic.get_ckan_client_from_session()
+    ckan_username = ckan_client.get_username_from_email(auth0_service.current_user_email())
+    ckan_cli = ckan_client.init_ckan(username_for_substitution=ckan_username)
+    user_id = auth0_service.current_user_email()
     try:
         dataset = ckan_client.fetch_dataset_details(ckan_cli, dataset_id)
     except ckan_client.NotFound:
         return error.not_found(f"Could not find dataset with id: {dataset_id}")
-    workflow = get_or_create_workflow(dataset['id'], current_user.id, name=dataset['title'])
+    workflow = get_or_create_workflow(dataset['id'], user_id, name=dataset['title'])
     if not workflow:
         return error.error_response(500, f"Couldn't get decision engine details for dataset {dataset_id}")
     try:
@@ -90,9 +93,10 @@ def workflow_state(dataset_id):
 
 
 @workflow_bp.route('/workflows/<dataset_id>/state', methods=['DELETE'])
-@login_required
+@auth0_service.require_auth(None)
 def workflow_delete(dataset_id):
-    workflow = model.get_workflow(dataset_id, current_user.id)
+    user_id = auth0_service.current_user_email()
+    workflow = model.get_workflow(dataset_id, user_id)
     if not workflow:
         return error.error_response(404, f"Workflow for dataset {dataset_id} not found.")
     model.db.session.delete(workflow)
@@ -107,5 +111,6 @@ def _update_last_decision_task_id(decision_task_id, workflow):
 
 
 def is_task_skipped(dataset_id, task_id):
-    workflow = model.get_workflow(dataset_id, current_user.id)
+    user_id = auth0_service.current_user_email()
+    workflow = model.get_workflow(dataset_id, user_id)
     return task_id in workflow.skipped_tasks

@@ -1,11 +1,10 @@
-import logging
-
-from urllib.parse import urljoin
 import io
+import logging
 import os
+from urllib.parse import urljoin
+from flask import current_app
 import ckanapi
 import requests
-from flask import current_app
 
 import logic
 
@@ -13,17 +12,30 @@ WORKFLOW_RESOURCE_TYPE = 'navigator-workflow-state'
 log = logging.getLogger(__name__)
 
 
-def init_ckan(apikey=None):
-    return ckanapi.RemoteCKAN(current_app.config['CKAN_URL'], apikey=apikey)
-
-
-def authenticate_user(password, username):
+def get_user_details_for_email(email):
     ckan = init_ckan()
-    try:
-        ckan_user = ckan.action.user_login(id=username, password=password)
-    except ckanapi.errors.CKANAPIError as err:
-        raise CkanError(str(err))
-    return ckan_user
+    ret = ckan.action.user_list(email=email)
+    if not ret or len(ret) != 1:
+        log.error(f'Incorrect user email ({email}), found {len(ret)} candidates')
+        raise NotFound(f"User with email {email} not found in CKAN")
+    return ret[0]
+
+
+def get_username_from_email(email):
+    return get_user_details_for_email(email)['name']
+
+
+def get_ckan_client_with_username_for_substitution_from_email(email):
+    username = get_username_from_email(email)
+    return init_ckan(apikey=current_app.config['CKAN_API'], username_for_substitution=username)
+
+
+def init_ckan(apikey=None, username_for_substitution=None):
+    apikey = apikey or current_app.config['CKAN_APIKEY']
+    session = requests.Session()
+    if username_for_substitution:
+        session.headers.update({'CKAN-Substitute-User': username_for_substitution})
+    return ckanapi.RemoteCKAN(current_app.config['CKAN_URL'], apikey=apikey, session=session)
 
 
 def fetch_country_estimates_datasets(ckan_cli, include_private=True):

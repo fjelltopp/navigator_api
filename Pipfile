@@ -9,12 +9,9 @@ redis = "*"
 aioredis = "*"
 flask = "*"
 flask-sqlalchemy = "*"
-flask-login = "*"
 ckanapi = "*"
 flask-cors = "*"
 webargs = "*"
-flask-session = "*"
-python-lorem = "*"
 flask-migrate = "*"
 psycopg2 = "*"
 requests = "*"
@@ -24,6 +21,8 @@ sentry-sdk = {extras = ["flask"], version = "*"}
 cachetools = "*"
 py-healthcheck = "*"
 flask_babel = '*'
+authlib = '*'
+cffi = '*'
 
 [dev-packages]
 flake8 = "*"

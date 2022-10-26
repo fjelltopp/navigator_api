@@ -2,26 +2,36 @@ from clients.ckan_client import init_ckan, NotFound  # noqa: F401
 
 valid_username = 'fjelltopp_user'
 valid_user_id = "fake_user_id"
+valid_user_email = "fake@fjelltopp.org"
+USER_DETAILS = {
+    "email_hash": "0e774ad846b368575ab7ca8738d114d",
+    "about": "Stubbed CKAN user",
+    "apikey": "46b76277-a274-433f-9b61-7b8085a1ce6f",
+    "display_name": "Tomasz Sabala",
+    "name": "tomek",
+    "created": "2019-09-18T08:34:32.156325",
+    "image_display_url": "",
+    "id": valid_user_id,
+    "state": "active",
+    "image_url": "",
+    "fullname": "Fake CkanUser",
+    "email": valid_user_email,
+    "number_created_packages": 1
+}
 
 
 def authenticate_user(password, username):
     if username == valid_username:
-        return {
-            "email_hash": "0e774ad846b368575ab7ca8738d114d",
-            "about": "Stubbed CKAN user",
-            "apikey": "46b76277-a274-433f-9b61-7b8085a1ce6f",
-            "display_name": "Tomasz Sabala",
-            "name": "tomek",
-            "created": "2019-09-18T08:34:32.156325",
-            "image_display_url": "",
-            "id": valid_user_id,
-            "state": "active",
-            "image_url": "",
-            "fullname": "Fake CkanUser",
-            "email": "fake@fjelltopp.org",
-            "number_created_packages": 1
-        }
+        return USER_DETAILS
     return {}
+
+
+def get_user_details_for_email(email):
+    return USER_DETAILS
+
+
+def get_username_from_email(email):
+    return USER_DETAILS['name']
 
 
 def fetch_country_estimates_datasets(ckan_cli):

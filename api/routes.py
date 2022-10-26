@@ -1,9 +1,9 @@
 import logging
 
-from flask import Blueprint, jsonify, session
-from flask_login import login_required
+from flask import Blueprint, jsonify
 
-import logic
+from api import error
+from api.auth import auth0_service
 from clients import ckan_client
 
 api_bp = Blueprint('api', __name__)
@@ -16,26 +16,31 @@ def index():
 
 
 @api_bp.route('/user')
-@login_required
+@auth0_service.require_auth(None)
 def user_details():
-    _user_details = session['ckan_user']
-    return jsonify(
-        {
-            "fullname": _user_details["fullname"],
-            "email": _user_details["email"],
-        }
-    )
+    try:
+        _user_details = ckan_client.get_user_details_for_email(
+            auth0_service.current_user_email()
+        )
+        return jsonify(
+            {
+                "fullname": _user_details["fullname"],
+                "email": _user_details["email"]
+            }
+        )
+    except ckan_client.NotFound:
+        return error.not_found("Couldn't find user details in ADR. Does the user have ADR account?")
 
 
 @api_bp.route('/datasets')
-@login_required
+@auth0_service.require_auth(None)
 def datasets():
-    ckan_user = session['ckan_user']
-    ckan_cli = logic.get_ckan_client_from_session()
+    ckan_username = ckan_client.get_username_from_email(auth0_service.current_user_email())
+    ckan_cli = ckan_client.init_ckan(username_for_substitution=ckan_username)
     dataset_list = ckan_client.fetch_country_estimates_datasets(ckan_cli)
     orgs = set(ckan_client.fetch_user_organization_ids(ckan_cli, capacity='create_dataset'))
     collab_datasets = set(
-        ckan_client.fetch_user_collabolator_ids(ckan_cli, ckan_user_id=ckan_user['id'], capacity='editor')
+        ckan_client.fetch_user_collabolator_ids(ckan_cli, ckan_user_id=ckan_username, capacity='editor')
     )
     result = []
     for dataset in dataset_list:

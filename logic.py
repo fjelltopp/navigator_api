@@ -6,13 +6,13 @@ from datetime import datetime, timezone
 import flask
 from cachetools import cached, Cache
 from cachetools.keys import hashkey
-from flask import session
-from flask_login import current_user
 from threading import Lock
 from flask_babel import _
 
 import model
+from api.auth import auth0_service
 from clients import ckan_client
+
 log = logging.getLogger(__name__)
 
 lock = Lock()
@@ -50,7 +50,8 @@ def workflow_state_message(workflow, task_breadcrumbs, decision_action_id, skipp
 
 
 def is_task_completed(dataset_id, task_id):
-    workflow = model.get_workflow(dataset_id, current_user.id)
+    current_user_email = auth0_service.current_user_email()
+    workflow = model.get_workflow(dataset_id, user_id=current_user_email)
     task_statuses_map = workflow.task_statuses_map
     task_status = task_statuses_map.get(task_id)
     if not task_status:
@@ -60,7 +61,10 @@ def is_task_completed(dataset_id, task_id):
     if task_status['terminus']:
         return True
     if manual:
-        ckan_cli = get_ckan_client_from_session()
+        ckan_username = ckan_client.get_username_from_email(current_user_email)
+        ckan_cli = ckan_client.init_ckan(
+            username_for_substitution=ckan_username
+        )
         wf_state = get_workflow_state(ckan_cli, dataset_id)
         if not wf_state:
             return False
@@ -80,12 +84,6 @@ def remove_tasks_from_skipped_list(workflow, task_list):
     model.db.session.add(workflow)
     model.db.session.commit()
     return None
-
-
-def get_ckan_client_from_session():
-    ckan_user = session['ckan_user']
-    ckan_cli = ckan_client.init_ckan(apikey=ckan_user['apikey'])
-    return ckan_cli
 
 
 def compose_task_details(dataset_id, task_id, task_details, task_status):

@@ -1,62 +1,54 @@
 import logging
+import json
+from urllib.request import urlopen
 
-from flask.sessions import SecureCookieSessionInterface
+from authlib.integrations.flask_oauth2 import ResourceProtector, current_token
+from authlib.jose import JsonWebKey
+from authlib.oauth2.rfc7523 import JWTBearerTokenValidator
 
-from api import error
-from flask import Blueprint, request, jsonify, session, url_for
-from flask_login import login_user, UserMixin, logout_user, LoginManager
-
-import clients.ckan_client as ckan_client
-
-login_manager = LoginManager()
-auth_bp = Blueprint('auth', __name__)
 logger = logging.getLogger(__name__)
 
 
-class User(UserMixin):
-    def __init__(self, id):
-        self.id = id
+class Auth0Service:
+    """Creates a decorator to auth protect resources with JWT OAuth2 token validation"""
+
+    def __init__(self):
+        self.issuer_url = None
+        self.audience = None
+        self.email_namespece = None
+        self.require_auth = ResourceProtector()
+
+    def init_app(self, app):
+        self.issuer_url = app.config['AUTH0_DOMAIN']
+        self.audience = app.config['AUTH0_AUDIENCE']
+        self.email_namespece = app.config['AUTH0_EMAIL_NAMESPACE']
+
+        validator = Auth0JWTBearerTokenValidator(
+            self.issuer_url,
+            self.audience
+        )
+        self.require_auth.register_token_validator(validator)
+
+    def current_user_email(self):
+        return current_token[self.email_namespece]
 
 
-@login_manager.user_loader
-def load_user(user_id):
-    if 'ckan_user' in session:
-        if session['ckan_user']['id'] == user_id:
-            return User(id=user_id)
-    return None
+class Auth0JWTBearerTokenValidator(JWTBearerTokenValidator):
+    """Auth0 Validator to be used in Auth0Service"""
+    def __init__(self, domain, audience):
+        issuer = f"https://{domain}/"
+        jsonurl = urlopen(f"{issuer}.well-known/jwks.json")
+        public_key = JsonWebKey.import_key_set(
+            json.loads(jsonurl.read())
+        )
+        super(Auth0JWTBearerTokenValidator, self).__init__(
+            public_key
+        )
+        self.claims_options = {
+            "exp": {"essential": True},
+            "aud": {"essential": True, "value": audience},
+            "iss": {"essential": True, "value": issuer},
+        }
 
 
-class SkipForInternalSessionInterface(SecureCookieSessionInterface):
-    """Prevent creating session for internal requests."""
-
-    def open_session(self, app, _request):
-        if _request.path == url_for('healtz.healthz'):
-            return None
-        return super(SkipForInternalSessionInterface, self).open_session(app, _request)
-
-
-@auth_bp.route('/login', methods=['POST'])
-def login():
-    username = request.json.get('username')
-    password = request.json.get('password')
-    remember = bool(request.json.get('remember', False))
-    try:
-        ckan_user = ckan_client.authenticate_user(password, username)
-    except ckan_client.CkanError:
-        logger.exception("Failed to call CKAN auth", exc_info=True)
-        return error.error_response(500, "Failed to connect to ADR auth")
-    if not ckan_user.get('email'):
-        return error.error_response(401, 'Bad credentials')
-    else:
-        user = User(id=ckan_user['id'])
-        session['ckan_user'] = ckan_user
-        login_user(user, remember=remember)
-    return jsonify({"message": "Login successful"})
-
-
-@auth_bp.route('/logout', methods=['POST'])
-def logout():
-    logout_user()
-    if 'ckan_user' in session:
-        session.pop('ckan_user')
-    return jsonify({"message": "Logout successful"})
+auth0_service = Auth0Service()

@@ -1,24 +1,15 @@
 from unittest.mock import patch
 
-import uuid
-
 import pytest
-
 import model
-from api.auth import User
 from app import create_app
-from tests import factories
 from tests.helpers import ckan_client_test_double
+from tests import factories
 
 
 @pytest.fixture()
 def workflow():
     return factories.WorklowFactory.create()
-
-
-@pytest.fixture()
-def user():
-    return User(id=str(uuid.uuid4()))
 
 
 @pytest.fixture(scope="session")
@@ -42,6 +33,10 @@ def setup(test_app):
 
 
 @pytest.fixture
-def logged_in(test_client):
-    with patch('api.auth.ckan_client', wraps=ckan_client_test_double):
-        test_client.post('/login', json={"username": ckan_client_test_double.valid_username, "password": "pass"})
+def auth0_authorized(test_app):
+    current_token_mock = {
+        test_app.config['AUTH0_EMAIL_NAMESPACE']: ckan_client_test_double.valid_user_email
+    }
+    with patch('api.auth.ResourceProtector.acquire_token'):
+        with patch('api.auth.current_token', new=current_token_mock):
+            yield
