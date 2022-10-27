@@ -15,15 +15,6 @@ def db_available():
     return True, "db ok"
 
 
-def redis_available():
-    try:
-        redis = current_app.config['SESSION_REDIS']
-        redis.ping()
-    except Exception as e:
-        return False, str(e)
-    return True, "redis ok"
-
-
 def engine_available():
     try:
         r = requests.get(current_app.config['ENGINE_URL'], timeout=2)
@@ -46,7 +37,6 @@ def adr_available():
 
 health = HealthCheck()
 health.add_check(db_available)
-health.add_check(redis_available)
 health.add_check(engine_available)
 health.add_check(adr_available)
 
