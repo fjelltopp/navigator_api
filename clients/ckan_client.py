@@ -40,7 +40,7 @@ def init_ckan(apikey=None, username_for_substitution=None):
 
 def fetch_country_estimates_datasets(ckan_cli, include_private=True):
     response = ckan_cli.action.package_search(
-        q="type:country-estimates-22",
+        q="type:country-estimates-23",
         rows=100000,
         hide_inaccessible_resources=True,
         include_private=include_private
