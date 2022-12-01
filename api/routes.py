@@ -29,8 +29,7 @@ def user_details():
             }
         )
     except ckan_client.NotFound:
-        return error.not_found("Couldn't find user details in ADR. Does the user have ADR account?")
-
+        return "user_not_found_in_adr"
 
 @api_bp.route('/datasets')
 @auth0_service.require_auth(None)
