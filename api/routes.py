@@ -2,7 +2,6 @@ import logging
 
 from flask import Blueprint, jsonify
 
-from api import error
 from api.auth import auth0_service
 from clients import ckan_client
 
@@ -30,6 +29,7 @@ def user_details():
         )
     except ckan_client.NotFound:
         return "user_not_found_in_adr"
+
 
 @api_bp.route('/datasets')
 @auth0_service.require_auth(None)
