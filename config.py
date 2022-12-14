@@ -20,7 +20,7 @@ class Config(object):
     SENTRY_DSN = os.getenv("SENTRY_DSN")
     LANGUAGES = os.getenv('NAVIGATOR_LANGUAGES', 'en,fr,pt').split(',')
     DEFAULT_LANGUAGE = os.getenv('NAVIGATOR_DEFAULT_LANGUAGE', 'en')
-    AUTH0_DOMAIN = os.getenv('AUTH0_DOMAIN', 'hivtools.eu.auth0.com')
+    AUTH0_ISSUER_BASE_URL = os.getenv('AUTH0_ISSUER_BASE_URL', 'hivtools.eu.auth0.com')
     AUTH0_AUDIENCE = os.getenv('AUTH0_AUDIENCE', 'http://navigator.minikube')
     AUTH0_EMAIL_NAMESPACE = os.getenv('AUTH0_EMAIL_NAMESPACE', 'http://navigator.minikube/email')
 

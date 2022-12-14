@@ -19,7 +19,7 @@ class Auth0Service:
         self.require_auth = ResourceProtector()
 
     def init_app(self, app):
-        self.issuer_url = app.config['AUTH0_DOMAIN']
+        self.issuer_url = app.config['AUTH0_ISSUER_BASE_URL']
         self.audience = app.config['AUTH0_AUDIENCE']
         self.email_namespace = app.config['AUTH0_EMAIL_NAMESPACE']
 
