@@ -20,7 +20,7 @@ class Config(object):
     SENTRY_DSN = os.getenv("SENTRY_DSN")
     LANGUAGES = os.getenv('NAVIGATOR_LANGUAGES', 'en,fr,pt').split(',')
     DEFAULT_LANGUAGE = os.getenv('NAVIGATOR_DEFAULT_LANGUAGE', 'en')
-    AUTH0_ISSUER_BASE_URL = os.getenv('AUTH0_ISSUER_BASE_URL', 'hivtools.eu.auth0.com')
+    AUTH0_ISSUER_BASE_URL = os.getenv('AUTH0_ISSUER_BASE_URL', 'https://hivtools.eu.auth0.com/')
     AUTH0_AUDIENCE = os.getenv('AUTH0_AUDIENCE', 'http://navigator.minikube')
     AUTH0_EMAIL_NAMESPACE = os.getenv('AUTH0_EMAIL_NAMESPACE', 'http://navigator.minikube/email')
 
@@ -28,8 +28,6 @@ class Config(object):
 class Testing(Config):
     TESTING = True
     DEBUG = False
-
-    AUTH0_EMAIL_NAMESPACE = 'http://navigator.minikube/email'
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'test.db')
     LOGGING_LEVEL = logging.WARNING
 
