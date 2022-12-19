@@ -35,11 +35,10 @@ class Auth0Service:
 
 class Auth0JWTBearerTokenValidator(JWTBearerTokenValidator):
     """Auth0 Validator to be used in Auth0Service"""
-    def __init__(self, domain, audience):
-        issuer = f"https://{domain}/"
-        jsonurl = urlopen(f"{issuer}.well-known/jwks.json")
+    def __init__(self, issuer, audience):
+        json_url = urlopen(f"{issuer}.well-known/jwks.json")
         public_key = JsonWebKey.import_key_set(
-            json.loads(jsonurl.read())
+            json.loads(json_url.read())
         )
         super(Auth0JWTBearerTokenValidator, self).__init__(
             public_key
