@@ -1,4 +1,4 @@
-FROM fjelltopp/python-fjelltopp-base:3.9
+FROM docker pull ghcr.io/fjelltopp/fjelltopp-base-images/python-fjelltopp-base:master
 
 COPY ./ /var/www/navigator_api
 WORKDIR /var/www/navigator_api
